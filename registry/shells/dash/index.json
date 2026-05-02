@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "kind": "shuck.shells.versions",
+  "shell": "dash",
+  "versions": {
+    "0.5.13.3": {
+      "manifest_url": "0.5.13.3.json"
+    }
+  }
+}
