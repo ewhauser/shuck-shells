@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.release",
+  "shell": "zsh",
+  "release": "5.9",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-aarch64-darwin.tar.gz",
+      "sha256": "db2c879298b60453dc596ad47961e14f74e4ff3faa05babb7c7160e8b6e61837"
+    },
+    "aarch64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-aarch64-linux-gnu.tar.gz",
+      "sha256": "4e21f520f2e4e95b7d15855c380076976f4463766d42d18a7221af529d4287ec"
+    },
+    "aarch64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-aarch64-linux-musl.tar.gz",
+      "sha256": "ff4ab3b01bad8ebbbbd16b0db68245a6eee40b7366ba2ebee7ae6bb4b3f571ba"
+    },
+    "x86_64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-x86_64-darwin.tar.gz",
+      "sha256": "42b8b4cafe927ffe7df7b36fb26b5ead740cde266971d3716df99a3cd024203b"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-x86_64-linux-gnu.tar.gz",
+      "sha256": "b9ae6f8819471afe81197b37d8deb759085dcbd21c7eec39092d105325bb071f"
+    },
+    "x86_64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/zsh-5.9/zsh-5.9-x86_64-linux-musl.tar.gz",
+      "sha256": "f7e501a3ae7e54859b79dd43b5b1277a02d3448ba8a3f0f3abb48648630d41d9"
+    }
+  }
+}
