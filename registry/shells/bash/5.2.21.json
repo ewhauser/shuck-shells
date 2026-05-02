@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.release",
+  "shell": "bash",
+  "release": "5.2.21",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-aarch64-darwin.tar.gz",
+      "sha256": "4a411029e7fedbbd619e8f16bc473d938dc11302d0fb9086a6adb5248fa71f57"
+    },
+    "aarch64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-aarch64-linux-gnu.tar.gz",
+      "sha256": "5806b09a2b54d4b8525d83d372661f8ffc000e6e51d86b36b7cde02352ba3cc9"
+    },
+    "aarch64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-aarch64-linux-musl.tar.gz",
+      "sha256": "cd167df22127cb927c26d9e8a46f9ba0a02484bcbec0a4d7bcb21138b05e905a"
+    },
+    "x86_64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-x86_64-darwin.tar.gz",
+      "sha256": "6d2ec5737411e9346dac98f912d78561d969cf9fe1f72d625f6b0d5304c04634"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+      "sha256": "011c5693a8e380dd8a23e6f15328f3d24302f99742149dcb0334dc8b10d92a26"
+    },
+    "x86_64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.2.21/bash-5.2.21-x86_64-linux-musl.tar.gz",
+      "sha256": "a3cd5225537f1f6162adbb699de65ceb07395d5c6ab7fe6b52f34a0bf15ae66f"
+    }
+  }
+}
