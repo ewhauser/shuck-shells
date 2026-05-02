@@ -94,11 +94,11 @@
           "https://kernel.googlesource.com/pub/scm/utils/dash/dash/"
         ],
         "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)",
-      "source_sha256s": {
-        "0.5.13.3": "83a76923f8d03c056bad706eff5a3d99b6bf2afd7e1061e066f2d7b07e2014db"
+        "source_sha256s": {
+          "0.5.13.3": "cc6957df3e723537a49852e0446336f4a372cabceda85ead01e489009cde7fd5"
+        }
       }
-    }
-  },
+    },
   "gbash": {
     "display_name": "gbash",
     "release_source": {
