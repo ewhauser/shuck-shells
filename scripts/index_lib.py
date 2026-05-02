@@ -13,8 +13,10 @@ SHELL_KIND = "shuck.shells.versions"
 RELEASE_KIND = "shuck.shells.release"
 SUPPORTED_SHELLS = ("bash", "zsh", "dash", "mksh")
 SUPPORTED_PLATFORMS = (
-    "x86_64-linux",
-    "aarch64-linux",
+    "x86_64-linux-gnu",
+    "aarch64-linux-gnu",
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
     "x86_64-darwin",
     "aarch64-darwin",
 )

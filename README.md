@@ -21,7 +21,7 @@ Examples:
 
 - `bash-5.2.21`
 - `zsh-5.9`
-- `bash-5.2.21-x86_64-linux.tar.gz`
+- `bash-5.2.21-x86_64-linux-gnu.tar.gz`
 
 Supported shells:
 
@@ -32,8 +32,10 @@ Supported shells:
 
 Supported platforms:
 
-- `x86_64-linux`
-- `aarch64-linux`
+- `x86_64-linux-gnu`
+- `aarch64-linux-gnu`
+- `x86_64-linux-musl`
+- `aarch64-linux-musl`
 - `x86_64-darwin`
 - `aarch64-darwin`
 
@@ -83,7 +85,7 @@ Per-version manifest:
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
-    "x86_64-linux": {
+    "x86_64-linux-gnu": {
       "url": "https://...",
       "sha256": "..."
     }
@@ -116,8 +118,10 @@ That mode uses `GITHUB_REPOSITORY` by default, or `--repo owner/name` to overrid
 - trigger: manual `workflow_dispatch`
 - source tarball: `https://ftp.gnu.org/pub/gnu/bash/bash-<version>.tar.gz`
 - published asset names:
-  - `bash-<version>-x86_64-linux.tar.gz`
-  - `bash-<version>-aarch64-linux.tar.gz`
+  - `bash-<version>-x86_64-linux-gnu.tar.gz`
+  - `bash-<version>-aarch64-linux-gnu.tar.gz`
+  - `bash-<version>-x86_64-linux-musl.tar.gz`
+  - `bash-<version>-aarch64-linux-musl.tar.gz`
   - `bash-<version>-x86_64-darwin.tar.gz`
   - `bash-<version>-aarch64-darwin.tar.gz`
 
@@ -130,7 +134,10 @@ The workflow currently builds on these GitHub-hosted runner labels:
 
 The release tag format stays `<shell>-<version>`, so a Bash build for `5.2.21` publishes or updates the release tag `bash-5.2.21`.
 
-Current limitation: the Linux archives are built on GitHub-hosted Ubuntu 22.04 runners, so their runtime compatibility follows that glibc baseline. This is a pragmatic first pass, not a broadest-possible Linux compatibility guarantee.
+The Linux matrix intentionally splits glibc and musl:
+
+- `*-linux-gnu` archives are built natively on Ubuntu 22.04 runners, so their runtime compatibility follows that glibc baseline.
+- `*-linux-musl` archives are built inside Alpine and target musl-based systems.
 
 ## Automation
 

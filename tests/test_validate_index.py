@@ -59,8 +59,8 @@ class ValidateIndexTest(unittest.TestCase):
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
-    "x86_64-linux": {
-      "url": "https://example.invalid/bash-5.2.21-x86_64-linux.tar.gz",
+    "x86_64-linux-gnu": {
+      "url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   }
@@ -125,8 +125,8 @@ class ValidateIndexTest(unittest.TestCase):
   "shell": "bash",
   "release": "5.1.16",
   "platforms": {
-    "x86_64-linux": {
-      "url": "https://example.invalid/bash-5.1.16-x86_64-linux.tar.gz",
+    "x86_64-linux-gnu": {
+      "url": "https://example.invalid/bash-5.1.16-x86_64-linux-gnu.tar.gz",
       "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     }
   }
@@ -150,8 +150,8 @@ class ValidateIndexTest(unittest.TestCase):
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
-    "x86_64-linux": {
-      "url": "https://example.invalid/bash-5.2.21-x86_64-linux.tar.gz",
+    "x86_64-linux-gnu": {
+      "url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
       "sha256": "not-a-digest"
     }
   }
@@ -175,8 +175,8 @@ class ValidateIndexTest(unittest.TestCase):
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
-    "ppc64le-linux": {
-      "url": "https://example.invalid/bash-5.2.21-ppc64le-linux.tar.gz",
+    "ppc64le-linux-gnu": {
+      "url": "https://example.invalid/bash-5.2.21-ppc64le-linux-gnu.tar.gz",
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   }
@@ -200,8 +200,8 @@ class ValidateIndexTest(unittest.TestCase):
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
-    "x86_64-linux": {
-      "url": "http://example.invalid/bash-5.2.21-x86_64-linux.tar.gz",
+    "x86_64-linux-gnu": {
+      "url": "http://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   }

@@ -18,8 +18,8 @@ class BuildIndexTest(unittest.TestCase):
     def test_build_registry_hashes_assets_and_sorts_versions(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp = Path(tempdir)
-            older = temp / "bash-5.1.16-x86_64-linux.tar.gz"
-            newer = temp / "bash-5.2.21-x86_64-linux.tar.gz"
+            older = temp / "bash-5.1.16-x86_64-linux-gnu.tar.gz"
+            newer = temp / "bash-5.2.21-x86_64-linux-gnu.tar.gz"
             older.write_bytes(b"older")
             newer.write_bytes(b"newer")
 
@@ -57,7 +57,7 @@ class BuildIndexTest(unittest.TestCase):
                 ["5.2.21", "5.1.16"],
             )
             self.assertEqual(
-                documents["shells/bash/5.2.21.json"]["platforms"]["x86_64-linux"]["sha256"],
+                documents["shells/bash/5.2.21.json"]["platforms"]["x86_64-linux-gnu"]["sha256"],
                 hashlib.sha256(b"newer").hexdigest(),
             )
             self.assertEqual(
@@ -73,8 +73,8 @@ class BuildIndexTest(unittest.TestCase):
                 "prerelease": False,
                 "assets": [
                     {
-                        "name": "bash-5.1.16-x86_64-linux.tar.gz",
-                        "browser_download_url": "https://example.invalid/bash-5.1.16-x86_64-linux.tar.gz",
+                        "name": "bash-5.1.16-x86_64-linux-gnu.tar.gz",
+                        "browser_download_url": "https://example.invalid/bash-5.1.16-x86_64-linux-gnu.tar.gz",
                     }
                 ],
             }
@@ -91,12 +91,12 @@ class BuildIndexTest(unittest.TestCase):
                 "prerelease": False,
                 "assets": [
                     {
-                        "name": "bash-5.2.21-x86_64-linux.tar.gz",
-                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux.tar.gz",
+                        "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
                     },
                     {
-                        "name": "bash-5.2.21-x86_64-linux.tar.gz",
-                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-alt.tar.gz",
+                        "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu-alt.tar.gz",
                     },
                 ],
             }
@@ -113,8 +113,8 @@ class BuildIndexTest(unittest.TestCase):
                 "prerelease": False,
                 "assets": [
                     {
-                        "name": "bash-5.2.21-x86_64-linux.tar.gz",
-                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux.tar.gz",
+                        "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
                     }
                 ],
             },
@@ -124,8 +124,8 @@ class BuildIndexTest(unittest.TestCase):
                 "prerelease": True,
                 "assets": [
                     {
-                        "name": "bash-5.2.22-x86_64-linux.tar.gz",
-                        "browser_download_url": "https://example.invalid/bash-5.2.22-x86_64-linux.tar.gz",
+                        "name": "bash-5.2.22-x86_64-linux-gnu.tar.gz",
+                        "browser_download_url": "https://example.invalid/bash-5.2.22-x86_64-linux-gnu.tar.gz",
                     }
                 ],
             },
@@ -170,7 +170,7 @@ class BuildIndexTest(unittest.TestCase):
         script_path = repo_root / "scripts" / "build_index.py"
         with tempfile.TemporaryDirectory() as tempdir:
             temp = Path(tempdir)
-            asset_path = temp / "bash-5.2.21-x86_64-linux.tar.gz"
+            asset_path = temp / "bash-5.2.21-x86_64-linux-gnu.tar.gz"
             asset_path.write_bytes(b"cli-fixture")
             releases_path = temp / "releases.json"
             output_dir = temp / "registry"
