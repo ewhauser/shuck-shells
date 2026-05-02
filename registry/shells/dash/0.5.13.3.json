@@ -1,0 +1,44 @@
+{
+  "version": 3,
+  "kind": "shuck.shells.release",
+  "shell": "dash",
+  "release": "0.5.13.3",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-aarch64-darwin.tar.gz",
+      "sha256": "ada29cfb18f82a9c8e847aeab519225f99859053f9dd4550bc574d7fdb4e876f",
+      "asset_id": 410790620,
+      "asset_digest": "sha256:ada29cfb18f82a9c8e847aeab519225f99859053f9dd4550bc574d7fdb4e876f"
+    },
+    "aarch64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-aarch64-linux-gnu.tar.gz",
+      "sha256": "2c899e9891411df23989ce2469975f087cd697740a6dff9fe47254061c41964b",
+      "asset_id": 410790619,
+      "asset_digest": "sha256:2c899e9891411df23989ce2469975f087cd697740a6dff9fe47254061c41964b"
+    },
+    "aarch64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-aarch64-linux-musl.tar.gz",
+      "sha256": "b5776173ccb15635a5f69b84891b2e403a1d80970ab7011837f439c648f93d33",
+      "asset_id": 410790622,
+      "asset_digest": "sha256:b5776173ccb15635a5f69b84891b2e403a1d80970ab7011837f439c648f93d33"
+    },
+    "x86_64-darwin": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-x86_64-darwin.tar.gz",
+      "sha256": "442e82cbbff5dd3832e1ffc9a03cd48819260ff3ab589c032cc36729e76300fc",
+      "asset_id": 410790617,
+      "asset_digest": "sha256:442e82cbbff5dd3832e1ffc9a03cd48819260ff3ab589c032cc36729e76300fc"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-x86_64-linux-gnu.tar.gz",
+      "sha256": "69e170e96af9ec51bef37825d1c3b031c0748b1721150117e94b0744f824f39e",
+      "asset_id": 410790621,
+      "asset_digest": "sha256:69e170e96af9ec51bef37825d1c3b031c0748b1721150117e94b0744f824f39e"
+    },
+    "x86_64-linux-musl": {
+      "url": "https://github.com/ewhauser/shuck-shells/releases/download/dash-0.5.13.3/dash-0.5.13.3-x86_64-linux-musl.tar.gz",
+      "sha256": "eaa64f888cbc9f4d27ed7df6e0d1f9b2be49b063be002bb66832551605e79c09",
+      "asset_id": 410790626,
+      "asset_digest": "sha256:eaa64f888cbc9f4d27ed7df6e0d1f9b2be49b063be002bb66832551605e79c09"
+    }
+  }
+}

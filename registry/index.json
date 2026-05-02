@@ -11,6 +11,9 @@
     "busybox": {
       "versions_url": "shells/busybox/index.json"
     },
+    "dash": {
+      "versions_url": "shells/dash/index.json"
+    },
     "gbash": {
       "versions_url": "shells/gbash/index.json"
     },
