@@ -17,6 +17,7 @@ fi
 app_id="${SHUCK_SHELLS_APP_ID:-}"
 installation_id="${SHUCK_SHELLS_APP_INSTALLATION_ID:-}"
 app_private_key="${SHUCK_SHELLS_APP_PRIVATE_KEY:-}"
+app_private_key_file="${SHUCK_SHELLS_APP_PRIVATE_KEY_FILE:-}"
 
 if [[ -z "$app_id" && -t 0 ]]; then
   read -r -p "Enter SHUCK_SHELLS_APP_ID: " app_id
@@ -26,17 +27,16 @@ if [[ -z "$installation_id" && -t 0 ]]; then
   read -r -p "Enter SHUCK_SHELLS_APP_INSTALLATION_ID: " installation_id
 fi
 
-if [[ -z "$app_private_key" && -t 0 ]]; then
-  echo "Paste SHUCK_SHELLS_APP_PRIVATE_KEY, then enter a line containing only EOF:"
-  private_key_lines=()
-  while IFS= read -r line; do
-    [[ "$line" == "EOF" ]] && break
-    private_key_lines+=("$line")
-  done
-  if ((${#private_key_lines[@]} > 0)); then
-    app_private_key="$(printf '%s\n' "${private_key_lines[@]}")"
-    app_private_key="${app_private_key%$'\n'}"
+if [[ -z "$app_private_key" && -z "$app_private_key_file" && -t 0 ]]; then
+  read -r -e -p "Enter path to SHUCK_SHELLS_APP_PRIVATE_KEY file: " app_private_key_file
+fi
+
+if [[ -z "$app_private_key" && -n "$app_private_key_file" ]]; then
+  if [[ ! -f "$app_private_key_file" ]]; then
+    echo "error: private key file not found: $app_private_key_file" >&2
+    exit 1
   fi
+  app_private_key="$(<"$app_private_key_file")"
 fi
 
 if [[ -z "$app_id" ]]; then
