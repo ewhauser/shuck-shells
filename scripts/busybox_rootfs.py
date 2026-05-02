@@ -13,8 +13,6 @@ BUSYBOX_LIBRARY_URL = (
 )
 
 PLATFORM_TARGETS = {
-    "x86_64-linux-gnu": {"docker_arch": "amd64", "variant": "glibc"},
-    "aarch64-linux-gnu": {"docker_arch": "arm64v8", "variant": "glibc"},
     "x86_64-linux-musl": {"docker_arch": "amd64", "variant": "musl"},
     "aarch64-linux-musl": {"docker_arch": "arm64v8", "variant": "musl"},
 }

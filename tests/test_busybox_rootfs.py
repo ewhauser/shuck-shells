@@ -50,16 +50,6 @@ class BusyBoxRootfsTest(unittest.TestCase):
         )
         self.assertEqual(len(parsed["release_blocks"]), 3)
 
-    def test_resolve_glibc_rootfs(self) -> None:
-        resolved = resolve_rootfs("1.37.0", "x86_64-linux-gnu", LIBRARY_TEXT)
-        self.assertEqual(resolved["variant"], "glibc")
-        self.assertEqual(resolved["docker_arch"], "amd64")
-        self.assertEqual(
-            resolved["rootfs_url"],
-            "https://raw.githubusercontent.com/docker-library/busybox/"
-            "c1375496373e76f680b1ef5f713500e98921a45c/latest/glibc/amd64/rootfs.tar.gz",
-        )
-
     def test_resolve_musl_rootfs(self) -> None:
         resolved = resolve_rootfs("1.37.0", "aarch64-linux-musl", LIBRARY_TEXT)
         self.assertEqual(resolved["variant"], "musl")
@@ -70,13 +60,23 @@ class BusyBoxRootfsTest(unittest.TestCase):
             "b6ab7c14ba46700181395f420545aee1ab297934/latest/musl/arm64v8/rootfs.tar.gz",
         )
 
+    def test_resolve_x86_64_musl_rootfs(self) -> None:
+        resolved = resolve_rootfs("1.37.0", "x86_64-linux-musl", LIBRARY_TEXT)
+        self.assertEqual(resolved["variant"], "musl")
+        self.assertEqual(resolved["docker_arch"], "amd64")
+        self.assertEqual(
+            resolved["rootfs_url"],
+            "https://raw.githubusercontent.com/docker-library/busybox/"
+            "c1375496373e76f680b1ef5f713500e98921a45c/latest/musl/amd64/rootfs.tar.gz",
+        )
+
     def test_rejects_missing_version(self) -> None:
         with self.assertRaisesRegex(BusyBoxRootfsError, "was not found"):
-            resolve_rootfs("1.35.0", "x86_64-linux-gnu", LIBRARY_TEXT)
+            resolve_rootfs("1.35.0", "x86_64-linux-musl", LIBRARY_TEXT)
 
     def test_rejects_unsupported_platform(self) -> None:
         with self.assertRaisesRegex(BusyBoxRootfsError, "unsupported busybox platform"):
-            resolve_rootfs("1.37.0", "x86_64-darwin", LIBRARY_TEXT)
+            resolve_rootfs("1.37.0", "x86_64-linux-gnu", LIBRARY_TEXT)
 
 
 if __name__ == "__main__":

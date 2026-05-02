@@ -12,7 +12,7 @@ output_dir="$3"
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
 case "$platform" in
-  x86_64-linux-gnu|aarch64-linux-gnu|x86_64-linux-musl|aarch64-linux-musl)
+  x86_64-linux-musl|aarch64-linux-musl)
     ;;
   *)
     echo "busybox repackaging does not support platform ${platform}" >&2

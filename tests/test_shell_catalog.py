@@ -86,9 +86,7 @@ class ShellCatalogTest(unittest.TestCase):
         self.assertEqual(
             shell_supported_platforms("busybox"),
             [
-                "aarch64-linux-gnu",
                 "aarch64-linux-musl",
-                "x86_64-linux-gnu",
                 "x86_64-linux-musl",
             ],
         )

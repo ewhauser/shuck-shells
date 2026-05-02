@@ -80,7 +80,8 @@ The workflow performs a release preflight check before starting the matrix:
   - discovery metadata: `https://raw.githubusercontent.com/docker-library/official-images/master/library/busybox`
   - input rootfs: `https://raw.githubusercontent.com/docker-library/busybox/<commit>/<directory>/rootfs.tar.gz`
   - runtime packaging: extracts `/bin/busybox`, then wraps it so `bin/busybox` runs the bundled `sh` applet
-  - supported platforms: Linux only (`*-linux-gnu`, `*-linux-musl`)
+  - supported platforms: musl only (`x86_64-linux-musl`, `aarch64-linux-musl`)
+  - note: the Docker BusyBox glibc rootfs binaries currently require `GLIBC_2.38`, which is newer than this repo's Ubuntu 22.04 GNU baseline, so `*-linux-gnu` assets are intentionally not published
 - `dash`
   - builder: `scripts/build_dash_release.sh`
   - source archive: `https://kernel.googlesource.com/pub/scm/utils/dash/dash/+archive/refs/tags/v<version>.tar.gz`
