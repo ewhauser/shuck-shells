@@ -299,6 +299,7 @@ jobs:
       - preflight
     if: needs.preflight.outputs.skip_build != 'true'
     runs-on: ubuntu-latest
+    environment: publish-release
     timeout-minutes: 15
     permissions:
       contents: write
