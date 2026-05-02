@@ -63,7 +63,7 @@ text = set_flag(text, "CONFIG_ASH", "y")
 text = set_flag(text, "CONFIG_SH_IS_ASH", "y")
 config_path.write_text(text, encoding="utf-8")
 PY
-yes "" | make oldconfig >/dev/null
+make olddefconfig >/dev/null
 if command -v getconf >/dev/null 2>&1; then
   jobs="$(getconf _NPROCESSORS_ONLN)"
 elif command -v sysctl >/dev/null 2>&1; then
