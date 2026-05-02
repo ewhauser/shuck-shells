@@ -14,6 +14,7 @@ from index_lib import (
     IndexError,
     build_registry_documents,
     canonicalize_inventory,
+    load_ordered_json,
     parse_asset_filename,
     parse_release_tag,
     write_registry_documents,
@@ -65,12 +66,19 @@ def fetch_asset_bytes(url: str) -> bytes:
         return response.read()
 
 
-def asset_sha256(asset: dict, asset_fetcher=fetch_asset_bytes) -> str:
+def github_asset_digest(asset: dict) -> str | None:
     digest = asset.get("digest")
     if isinstance(digest, str):
         match = re.fullmatch(r"sha256:([0-9a-f]{64})", digest)
         if match:
-            return match.group(1)
+            return digest
+    return None
+
+
+def asset_sha256(asset: dict, asset_fetcher=fetch_asset_bytes) -> str:
+    digest = github_asset_digest(asset)
+    if digest is not None:
+        return digest.removeprefix("sha256:")
 
     asset_url = asset.get("browser_download_url")
     if not isinstance(asset_url, str):
@@ -78,8 +86,79 @@ def asset_sha256(asset: dict, asset_fetcher=fetch_asset_bytes) -> str:
     return hashlib.sha256(asset_fetcher(asset_url)).hexdigest()
 
 
+def asset_provenance(asset: dict) -> dict[str, str | int]:
+    provenance: dict[str, str | int] = {}
+    asset_id = asset.get("id")
+    if isinstance(asset_id, bool):
+        raise IndexError("release asset has an invalid `id`")
+    if isinstance(asset_id, int):
+        provenance["asset_id"] = asset_id
+    elif asset_id is not None:
+        raise IndexError("release asset has an invalid `id`")
+    digest = github_asset_digest(asset)
+    if digest is not None:
+        provenance["asset_digest"] = digest
+    return provenance
+
+
+def artifact_from_asset(asset: dict, asset_fetcher=fetch_asset_bytes) -> dict[str, str | int]:
+    asset_url = asset.get("browser_download_url")
+    if not isinstance(asset_url, str):
+        raise IndexError("release asset is missing `browser_download_url`")
+    return {
+        "url": asset_url,
+        "sha256": asset_sha256(asset, asset_fetcher=asset_fetcher),
+        **asset_provenance(asset),
+    }
+
+
+def existing_registry_artifacts(
+    output_dir: str | Path,
+) -> dict[tuple[str, str, str], dict[str, object]]:
+    output_path = Path(output_dir)
+    if not (output_path / "index.json").is_file():
+        return {}
+
+    artifacts: dict[tuple[str, str, str], dict[str, object]] = {}
+    for manifest_path in output_path.glob("shells/*/*.json"):
+        if manifest_path.name == "index.json":
+            continue
+        document = load_ordered_json(manifest_path)
+        shell = document.get("shell")
+        release = document.get("release")
+        platforms = document.get("platforms")
+        if not isinstance(shell, str) or not isinstance(release, str):
+            continue
+        if not isinstance(platforms, dict):
+            continue
+        for platform, artifact in platforms.items():
+            if isinstance(platform, str) and isinstance(artifact, dict):
+                artifacts[(shell, release, platform)] = dict(artifact)
+    return artifacts
+
+
+def check_for_asset_mutations(
+    inventory: dict[str, dict[str, dict[str, dict[str, str | int]]]],
+    previous_artifacts: dict[tuple[str, str, str], dict[str, object]],
+) -> None:
+    for shell, versions in inventory.items():
+        for version, platforms in versions.items():
+            for platform, artifact in platforms.items():
+                previous = previous_artifacts.get((shell, version, platform))
+                if previous is None:
+                    continue
+                for field in ("asset_id", "asset_digest", "sha256"):
+                    if field not in previous or field not in artifact:
+                        continue
+                    if previous[field] != artifact[field]:
+                        raise IndexError(
+                            f"release asset mutation detected for {shell} {version} {platform}: "
+                            f"{field} changed from `{previous[field]}` to `{artifact[field]}`"
+                        )
+
+
 def ingest_build_releases(
-    shells: dict[str, dict[str, dict[str, dict[str, str]]]],
+    shells: dict[str, dict[str, dict[str, dict[str, str | int]]]],
     releases: list[dict],
     asset_fetcher=fetch_asset_bytes,
 ) -> None:
@@ -117,12 +196,13 @@ def ingest_build_releases(
                     f"duplicate archive for {shell} {version} on {platform}: `{asset_name}`"
                 )
 
-            sha256 = asset_sha256(asset, asset_fetcher=asset_fetcher)
-            shells[shell][version][platform] = {"url": asset_url, "sha256": sha256}
+            shells[shell][version][platform] = artifact_from_asset(
+                asset, asset_fetcher=asset_fetcher
+            )
 
 
 def ingest_github_release_sources(
-    shells: dict[str, dict[str, dict[str, dict[str, str]]]],
+    shells: dict[str, dict[str, dict[str, dict[str, str | int]]]],
     releases_by_repo: dict[str, list[dict]],
     asset_fetcher=fetch_asset_bytes,
 ) -> None:
@@ -195,19 +275,18 @@ def ingest_github_release_sources(
                         f"duplicate archive for {shell} {version} on {matched_platform}: `{asset_name}`"
                     )
 
-                sha256 = asset_sha256(asset, asset_fetcher=asset_fetcher)
-                shells[shell][version][matched_platform] = {
-                    "url": asset_url,
-                    "sha256": sha256,
-                }
+                shells[shell][version][matched_platform] = artifact_from_asset(
+                    asset, asset_fetcher=asset_fetcher
+                )
 
 
 def build_registry(
     releases: list[dict],
     github_release_releases_by_repo: dict[str, list[dict]] | None = None,
     asset_fetcher=fetch_asset_bytes,
+    previous_artifacts: dict[tuple[str, str, str], dict[str, object]] | None = None,
 ) -> dict:
-    shells: dict[str, dict[str, dict[str, dict[str, str]]]] = defaultdict(
+    shells: dict[str, dict[str, dict[str, dict[str, str | int]]]] = defaultdict(
         lambda: defaultdict(dict)
     )
 
@@ -226,6 +305,8 @@ def build_registry(
         for shell, versions in shells.items()
         if versions
     }
+    if previous_artifacts is not None:
+        check_for_asset_mutations(inventory, previous_artifacts)
     return build_registry_documents(canonicalize_inventory(inventory))
 
 
@@ -272,6 +353,7 @@ def main() -> None:
     documents = build_registry(
         releases,
         github_release_releases_by_repo=github_release_releases_by_repo,
+        previous_artifacts=existing_registry_artifacts(args.output_dir),
     )
     output_dir = Path(args.output_dir)
     output_dir.parent.mkdir(parents=True, exist_ok=True)

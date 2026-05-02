@@ -177,11 +177,13 @@ class BuildIndexTest(unittest.TestCase):
                         {
                             "name": "bashkit-x86_64-unknown-linux-gnu.tar.gz",
                             "browser_download_url": "https://example.invalid/bashkit-x86_64-unknown-linux-gnu.tar.gz",
+                            "id": 101,
                             "digest": "sha256:" + ("a" * 64),
                         },
                         {
                             "name": "bashkit-aarch64-apple-darwin.tar.gz",
                             "browser_download_url": "https://example.invalid/bashkit-aarch64-apple-darwin.tar.gz",
+                            "id": 102,
                             "digest": "sha256:" + ("b" * 64),
                         },
                     ],
@@ -196,11 +198,13 @@ class BuildIndexTest(unittest.TestCase):
                         {
                             "name": "gbash_0.0.37_linux_amd64.tar.gz",
                             "browser_download_url": "https://example.invalid/gbash_0.0.37_linux_amd64.tar.gz",
+                            "id": 201,
                             "digest": "sha256:" + ("c" * 64),
                         },
                         {
                             "name": "gbash_0.0.37_darwin_arm64.tar.gz",
                             "browser_download_url": "https://example.invalid/gbash_0.0.37_darwin_arm64.tar.gz",
+                            "id": 202,
                             "digest": "sha256:" + ("d" * 64),
                         },
                         {
@@ -228,6 +232,14 @@ class BuildIndexTest(unittest.TestCase):
             "a" * 64,
         )
         self.assertEqual(
+            documents["shells/bashkit/0.2.1.json"]["platforms"]["x86_64-linux-gnu"]["asset_id"],
+            101,
+        )
+        self.assertEqual(
+            documents["shells/bashkit/0.2.1.json"]["platforms"]["x86_64-linux-gnu"]["asset_digest"],
+            "sha256:" + ("a" * 64),
+        )
+        self.assertEqual(
             documents["shells/gbash/0.0.37.json"]["platforms"]["aarch64-darwin"]["sha256"],
             "d" * 64,
         )
@@ -235,6 +247,91 @@ class BuildIndexTest(unittest.TestCase):
             "x86_64-linux-musl",
             documents["shells/gbash/0.0.37.json"]["platforms"],
         )
+
+    def test_build_registry_rejects_changed_tracked_asset_digest(self) -> None:
+        with self.assertRaisesRegex(IndexError, "asset_digest changed"):
+            build_registry(
+                [
+                    {
+                        "tag_name": "bash-5.2.21",
+                        "draft": False,
+                        "prerelease": False,
+                        "assets": [
+                            {
+                                "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "id": 101,
+                                "digest": "sha256:" + ("b" * 64),
+                            }
+                        ],
+                    }
+                ],
+                previous_artifacts={
+                    ("bash", "5.2.21", "x86_64-linux-gnu"): {
+                        "url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "sha256": "a" * 64,
+                        "asset_id": 101,
+                        "asset_digest": "sha256:" + ("a" * 64),
+                    }
+                },
+                asset_fetcher=lambda _: self.fail("asset fetch should not be used when digest is present"),
+            )
+
+    def test_build_registry_rejects_changed_tracked_asset_id(self) -> None:
+        with self.assertRaisesRegex(IndexError, "asset_id changed"):
+            build_registry(
+                [
+                    {
+                        "tag_name": "bash-5.2.21",
+                        "draft": False,
+                        "prerelease": False,
+                        "assets": [
+                            {
+                                "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "id": 102,
+                                "digest": "sha256:" + ("a" * 64),
+                            }
+                        ],
+                    }
+                ],
+                previous_artifacts={
+                    ("bash", "5.2.21", "x86_64-linux-gnu"): {
+                        "url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "sha256": "a" * 64,
+                        "asset_id": 101,
+                        "asset_digest": "sha256:" + ("a" * 64),
+                    }
+                },
+                asset_fetcher=lambda _: self.fail("asset fetch should not be used when digest is present"),
+            )
+
+    def test_build_registry_rejects_changed_tracked_fetched_sha256(self) -> None:
+        with self.assertRaisesRegex(IndexError, "sha256 changed"):
+            build_registry(
+                [
+                    {
+                        "tag_name": "bash-5.2.21",
+                        "draft": False,
+                        "prerelease": False,
+                        "assets": [
+                            {
+                                "name": "bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "browser_download_url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                                "id": 101,
+                            }
+                        ],
+                    }
+                ],
+                previous_artifacts={
+                    ("bash", "5.2.21", "x86_64-linux-gnu"): {
+                        "url": "https://example.invalid/bash-5.2.21-x86_64-linux-gnu.tar.gz",
+                        "sha256": hashlib.sha256(b"old").hexdigest(),
+                        "asset_id": 101,
+                    }
+                },
+                asset_fetcher=lambda _: b"new",
+            )
 
     def test_build_registry_rejects_github_release_asset_version_mismatch(self) -> None:
         with self.assertRaisesRegex(IndexError, "does not match release version"):

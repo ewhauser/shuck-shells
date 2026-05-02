@@ -57,7 +57,7 @@ Root discovery document:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.index",
   "shells": {
     "bash": {
@@ -71,7 +71,7 @@ Per-shell versions document:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.versions",
   "shell": "bash",
   "versions": {
@@ -86,14 +86,16 @@ Per-version manifest:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.2.21",
   "platforms": {
     "x86_64-linux-gnu": {
       "url": "https://...",
-      "sha256": "..."
+      "sha256": "...",
+      "asset_id": 123456,
+      "asset_digest": "sha256:..."
     }
   }
 }

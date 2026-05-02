@@ -1,16 +1,20 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "busybox",
   "release": "1.37.0",
   "platforms": {
     "aarch64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/busybox-1.37.0/busybox-1.37.0-aarch64-linux-musl.tar.gz",
-      "sha256": "5b5f284424f4b9f02f2d7b2670b69050b1d26022c37f83312d427a2222bac2bf"
+      "sha256": "5b5f284424f4b9f02f2d7b2670b69050b1d26022c37f83312d427a2222bac2bf",
+      "asset_id": 410755854,
+      "asset_digest": "sha256:5b5f284424f4b9f02f2d7b2670b69050b1d26022c37f83312d427a2222bac2bf"
     },
     "x86_64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/busybox-1.37.0/busybox-1.37.0-x86_64-linux-musl.tar.gz",
-      "sha256": "790ee822c93a263bb05d0909faa11ba3320a439f7860c9e387f4b4c8bbb3b0d4"
+      "sha256": "790ee822c93a263bb05d0909faa11ba3320a439f7860c9e387f4b4c8bbb3b0d4",
+      "asset_id": 410755855,
+      "asset_digest": "sha256:790ee822c93a263bb05d0909faa11ba3320a439f7860c9e387f4b4c8bbb3b0d4"
     }
   }
 }

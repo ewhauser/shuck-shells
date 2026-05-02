@@ -1,20 +1,26 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "gbash",
   "release": "0.0.24",
   "platforms": {
     "aarch64-darwin": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.24/gbash_0.0.24_darwin_arm64.tar.gz",
-      "sha256": "fef478eb328c257cf66eb593d01a72e916759b575742a2bab07475488b2786f8"
+      "sha256": "fef478eb328c257cf66eb593d01a72e916759b575742a2bab07475488b2786f8",
+      "asset_id": 378853808,
+      "asset_digest": "sha256:fef478eb328c257cf66eb593d01a72e916759b575742a2bab07475488b2786f8"
     },
     "aarch64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.24/gbash_0.0.24_linux_arm64.tar.gz",
-      "sha256": "24ec46966fafa878e35264f483c84128500e8efb458081ab425ffd3d0072f240"
+      "sha256": "24ec46966fafa878e35264f483c84128500e8efb458081ab425ffd3d0072f240",
+      "asset_id": 378853811,
+      "asset_digest": "sha256:24ec46966fafa878e35264f483c84128500e8efb458081ab425ffd3d0072f240"
     },
     "x86_64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.24/gbash_0.0.24_linux_amd64.tar.gz",
-      "sha256": "cb3bcee0f1e60235f20c1d994efa132b862066fafe20f53b6b3543479382d99e"
+      "sha256": "cb3bcee0f1e60235f20c1d994efa132b862066fafe20f53b6b3543479382d99e",
+      "asset_id": 378853809,
+      "asset_digest": "sha256:cb3bcee0f1e60235f20c1d994efa132b862066fafe20f53b6b3543479382d99e"
     }
   }
 }

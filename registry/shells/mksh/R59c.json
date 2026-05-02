@@ -1,32 +1,44 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "mksh",
   "release": "R59c",
   "platforms": {
     "aarch64-darwin": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-aarch64-darwin.tar.gz",
-      "sha256": "9a0bfc13ccea0241b38209581d1a7ab3aa1ae60421ffc8cb82811d52c2038944"
+      "sha256": "9a0bfc13ccea0241b38209581d1a7ab3aa1ae60421ffc8cb82811d52c2038944",
+      "asset_id": 410719830,
+      "asset_digest": "sha256:9a0bfc13ccea0241b38209581d1a7ab3aa1ae60421ffc8cb82811d52c2038944"
     },
     "aarch64-linux-gnu": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-aarch64-linux-gnu.tar.gz",
-      "sha256": "9dd59437fc101a55026e0b0c5a0f176d312721eb0dc87982e69761509f63886f"
+      "sha256": "9dd59437fc101a55026e0b0c5a0f176d312721eb0dc87982e69761509f63886f",
+      "asset_id": 410719834,
+      "asset_digest": "sha256:9dd59437fc101a55026e0b0c5a0f176d312721eb0dc87982e69761509f63886f"
     },
     "aarch64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-aarch64-linux-musl.tar.gz",
-      "sha256": "5145226c81616d9b26ff2fd4ec78e479bb37aa53948144e1e22cce1cc5c1a661"
+      "sha256": "5145226c81616d9b26ff2fd4ec78e479bb37aa53948144e1e22cce1cc5c1a661",
+      "asset_id": 410719835,
+      "asset_digest": "sha256:5145226c81616d9b26ff2fd4ec78e479bb37aa53948144e1e22cce1cc5c1a661"
     },
     "x86_64-darwin": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-x86_64-darwin.tar.gz",
-      "sha256": "2191616da7433b0cd5167f847f6fa7bc6301faf06a9fa93d36962bf53c3bfbd5"
+      "sha256": "2191616da7433b0cd5167f847f6fa7bc6301faf06a9fa93d36962bf53c3bfbd5",
+      "asset_id": 410719831,
+      "asset_digest": "sha256:2191616da7433b0cd5167f847f6fa7bc6301faf06a9fa93d36962bf53c3bfbd5"
     },
     "x86_64-linux-gnu": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-x86_64-linux-gnu.tar.gz",
-      "sha256": "c89c9770ee08554201873e2ba3dc075dab80e7bd9b3ce061cfe1ad1a4ec831db"
+      "sha256": "c89c9770ee08554201873e2ba3dc075dab80e7bd9b3ce061cfe1ad1a4ec831db",
+      "asset_id": 410719832,
+      "asset_digest": "sha256:c89c9770ee08554201873e2ba3dc075dab80e7bd9b3ce061cfe1ad1a4ec831db"
     },
     "x86_64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/mksh-R59c/mksh-R59c-x86_64-linux-musl.tar.gz",
-      "sha256": "6908cb7d1185ec95805f794e621956876eb33aa09e69f9193c69bc52da8b2bf5"
+      "sha256": "6908cb7d1185ec95805f794e621956876eb33aa09e69f9193c69bc52da8b2bf5",
+      "asset_id": 410719841,
+      "asset_digest": "sha256:6908cb7d1185ec95805f794e621956876eb33aa09e69f9193c69bc52da8b2bf5"
     }
   }
 }
