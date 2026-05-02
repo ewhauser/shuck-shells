@@ -31,7 +31,7 @@ jobs:
       missing_assets: ${{ steps.check-release.outputs.missing_assets }}
       supported_platforms: ${{ steps.check-release.outputs.supported_platforms }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
 
@@ -129,7 +129,7 @@ jobs:
           - runner: ubuntu-22.04-arm
             platform: aarch64-linux-gnu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
@@ -148,7 +148,7 @@ jobs:
           chmod +x scripts/build_shell_release.sh
           scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -169,7 +169,7 @@ jobs:
           - runner: ubuntu-22.04-arm
             platform: aarch64-linux-musl
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
@@ -187,7 +187,7 @@ jobs:
               scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
             '
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -208,7 +208,7 @@ jobs:
           - runner: macos-15
             platform: aarch64-darwin
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
@@ -226,7 +226,7 @@ jobs:
           chmod +x scripts/build_shell_release.sh
           scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -247,7 +247,7 @@ jobs:
     steps:
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3
         with:
           app-id: ${{ secrets.SHUCK_SHELLS_APP_ID }}
           private-key: ${{ secrets.SHUCK_SHELLS_APP_PRIVATE_KEY }}
@@ -255,7 +255,7 @@ jobs:
       - name: Verify GitHub App installation
         run: test "${{ steps.app-token.outputs.installation-id }}" = "${{ secrets.SHUCK_SHELLS_APP_INSTALLATION_ID }}"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           path: dist
           pattern: ${{ inputs.shell }}-${{ inputs.version }}-*
