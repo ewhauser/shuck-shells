@@ -302,6 +302,9 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - name: Mint GitHub App token
         id: app-token
@@ -322,7 +325,7 @@ jobs:
           pattern: ${{ inputs.shell }}-${{ inputs.version }}-*
           merge-multiple: true
 
-      - name: Create or update GitHub release
+      - name: Verify release archive set
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO: ${{ github.repository }}
@@ -358,6 +361,23 @@ jobs:
                   f"missing={missing or '[]'} extra={extra or '[]'}"
               )
           PY
+
+      - name: Attest release archives
+        uses: actions/attest@281a49d4cbb0a72c9575a50d18f6deb515a11deb # v4
+        with:
+          subject-path: dist/*.tar.gz
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+          SUPPORTED_PLATFORMS: ${{ needs.preflight.outputs.supported_platforms }}
+        run: |
+          RELEASE_TAG="${SHELL_NAME}-${SHELL_VERSION}"
+          RELEASE_TITLE="${SHELL_NAME} ${SHELL_VERSION}"
+          export RELEASE_TAG RELEASE_TITLE
 
           if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
             echo "Release $RELEASE_TAG already exists; refusing to mutate immutable release assets." >&2
