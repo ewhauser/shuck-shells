@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.release",
+  "shell": "gbash",
+  "release": "0.0.32",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.32/gbash_0.0.32_darwin_arm64.tar.gz",
+      "sha256": "5f4ee811c974bfd006de9b9523eb2dd839c2283cd8147ccb6b1aa230f38e934c"
+    },
+    "aarch64-linux-gnu": {
+      "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.32/gbash_0.0.32_linux_arm64.tar.gz",
+      "sha256": "b159f49ce4c02785422cef9d46136fa4ea9d26ec328e01345498d2d394417e07"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.32/gbash_0.0.32_linux_amd64.tar.gz",
+      "sha256": "44c120db7193f982888d2a5f665c2554865dfa7f4aa73883daa44de052b289f5"
+    }
+  }
+}

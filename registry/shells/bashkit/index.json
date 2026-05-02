@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "bashkit",
+  "versions": {
+    "0.2.1": {
+      "manifest_url": "0.2.1.json"
+    },
+    "0.2.0": {
+      "manifest_url": "0.2.0.json"
+    },
+    "0.1.21": {
+      "manifest_url": "0.1.21.json"
+    },
+    "0.1.20": {
+      "manifest_url": "0.1.20.json"
+    },
+    "0.1.19": {
+      "manifest_url": "0.1.19.json"
+    },
+    "0.1.18": {
+      "manifest_url": "0.1.18.json"
+    },
+    "0.1.17": {
+      "manifest_url": "0.1.17.json"
+    },
+    "0.1.16": {
+      "manifest_url": "0.1.16.json"
+    },
+    "0.1.15": {
+      "manifest_url": "0.1.15.json"
+    },
+    "0.1.14": {
+      "manifest_url": "0.1.14.json"
+    }
+  }
+}

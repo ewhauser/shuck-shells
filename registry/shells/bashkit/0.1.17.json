@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.release",
+  "shell": "bashkit",
+  "release": "0.1.17",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/everruns/bashkit/releases/download/v0.1.17/bashkit-aarch64-apple-darwin.tar.gz",
+      "sha256": "588c95447daa12c9519e58f21e830fd11891a077db4e083c5b308e82ac91a059"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/everruns/bashkit/releases/download/v0.1.17/bashkit-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "fff240ecbbe162b0509352033315f05032b8293ead4f6e7af1bb3385a079e139"
+    }
+  }
+}
