@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "busybox",
+  "versions": {
+    "1.37.0": {
+      "manifest_url": "1.37.0.json"
+    }
+  }
+}

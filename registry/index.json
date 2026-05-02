@@ -8,6 +8,9 @@
     "bashkit": {
       "versions_url": "shells/bashkit/index.json"
     },
+    "busybox": {
+      "versions_url": "shells/busybox/index.json"
+    },
     "gbash": {
       "versions_url": "shells/gbash/index.json"
     },
