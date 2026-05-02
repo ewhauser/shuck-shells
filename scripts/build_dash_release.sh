@@ -27,9 +27,9 @@ mkdir -p "$output_dir" "$build_dir"
 
 echo "Downloading ${source_url}"
 curl -fsSL "$source_url" -o "$source_archive"
-"$repo_root/scripts/verify_source_sha256.sh" "$source_sha256" "$source_archive"
 mkdir -p "$source_dir"
 tar -xzf "$source_archive" -C "$source_dir"
+"$repo_root/scripts/verify_source_sha256.sh" "$source_sha256" "$source_dir"
 
 if [[ ! -x "$source_dir/configure" ]]; then
   if [[ -x "$source_dir/autogen.sh" ]]; then

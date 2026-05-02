@@ -95,7 +95,7 @@
         ],
         "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)",
         "source_sha256s": {
-          "0.5.13.3": "cc6957df3e723537a49852e0446336f4a372cabceda85ead01e489009cde7fd5"
+          "0.5.13.3": "a30b51c4bc5ab1d7ffd994a42910706d022fa74fc4aa45710ebc780a82ea0687"
         }
       }
     },

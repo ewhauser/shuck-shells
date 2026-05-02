@@ -66,7 +66,7 @@ The catalog drives both paths, so the registry can mix repo-built shells with ex
 
 The workflow only builds shells whose `release_source.kind` is `build`. If a later shell is cataloged under another source kind, the workflow fails fast instead of pretending to support it.
 
-Buildable versions must also have an expected upstream source digest in `upstream.source_sha256s`. The release workflow verifies the downloaded upstream archive against that digest before extracting or compiling it. If discovery finds a newer upstream version without a cataloged digest, the nightly job reports it but does not dispatch a build.
+Buildable versions must also have an expected upstream source digest in `upstream.source_sha256s`. The release workflow verifies the upstream source material against that digest before compiling it. Most shells verify the downloaded archive bytes directly; `dash` verifies the extracted source tree because the Gitiles `tar.gz` wrapper is not byte-stable across requests. If discovery finds a newer upstream version without a cataloged digest, the nightly job reports it but does not dispatch a build.
 
 The workflow performs a release preflight check before starting the matrix:
 
