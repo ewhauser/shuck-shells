@@ -1,20 +1,26 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "gbash",
   "release": "0.0.37",
   "platforms": {
     "aarch64-darwin": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.37/gbash_0.0.37_darwin_arm64.tar.gz",
-      "sha256": "27fca04dc638314415bb2df40cdfac6c4204dfd540d515f3c7151a7fc793f57b"
+      "sha256": "27fca04dc638314415bb2df40cdfac6c4204dfd540d515f3c7151a7fc793f57b",
+      "asset_id": 387534442,
+      "asset_digest": "sha256:27fca04dc638314415bb2df40cdfac6c4204dfd540d515f3c7151a7fc793f57b"
     },
     "aarch64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.37/gbash_0.0.37_linux_arm64.tar.gz",
-      "sha256": "934c475645803eff7422f0009239d50b5f5497a9b109a739f407fb0bc0c0a5dc"
+      "sha256": "934c475645803eff7422f0009239d50b5f5497a9b109a739f407fb0bc0c0a5dc",
+      "asset_id": 387534441,
+      "asset_digest": "sha256:934c475645803eff7422f0009239d50b5f5497a9b109a739f407fb0bc0c0a5dc"
     },
     "x86_64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.37/gbash_0.0.37_linux_amd64.tar.gz",
-      "sha256": "e1a0f1e4fed27bdb7aa25a95d311dfe54cb375445f6f6dedbcd7f3171b7e7b60"
+      "sha256": "e1a0f1e4fed27bdb7aa25a95d311dfe54cb375445f6f6dedbcd7f3171b7e7b60",
+      "asset_id": 387534440,
+      "asset_digest": "sha256:e1a0f1e4fed27bdb7aa25a95d311dfe54cb375445f6f6dedbcd7f3171b7e7b60"
     }
   }
 }

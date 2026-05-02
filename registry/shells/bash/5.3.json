@@ -1,32 +1,44 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.3",
   "platforms": {
     "aarch64-darwin": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-aarch64-darwin.tar.gz",
-      "sha256": "2e00e766d1a60204c82fa0420c4fe867940c85f2906cb5b35117414eb7de6123"
+      "sha256": "2e00e766d1a60204c82fa0420c4fe867940c85f2906cb5b35117414eb7de6123",
+      "asset_id": 410720448,
+      "asset_digest": "sha256:2e00e766d1a60204c82fa0420c4fe867940c85f2906cb5b35117414eb7de6123"
     },
     "aarch64-linux-gnu": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-aarch64-linux-gnu.tar.gz",
-      "sha256": "55f2e2c67bb93762d48bec0ccad224af6a2e5bab5f995789044f1f339aca7752"
+      "sha256": "55f2e2c67bb93762d48bec0ccad224af6a2e5bab5f995789044f1f339aca7752",
+      "asset_id": 410720447,
+      "asset_digest": "sha256:55f2e2c67bb93762d48bec0ccad224af6a2e5bab5f995789044f1f339aca7752"
     },
     "aarch64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-aarch64-linux-musl.tar.gz",
-      "sha256": "704595c6ba944a434d34850eb91b8fd44007b0a0912b8f17a956a87f1e88fca2"
+      "sha256": "704595c6ba944a434d34850eb91b8fd44007b0a0912b8f17a956a87f1e88fca2",
+      "asset_id": 410720449,
+      "asset_digest": "sha256:704595c6ba944a434d34850eb91b8fd44007b0a0912b8f17a956a87f1e88fca2"
     },
     "x86_64-darwin": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-x86_64-darwin.tar.gz",
-      "sha256": "d211f4f68c7d02754fc34c2f6b8bf7c32b38bd06835846a385097250af4a93a6"
+      "sha256": "d211f4f68c7d02754fc34c2f6b8bf7c32b38bd06835846a385097250af4a93a6",
+      "asset_id": 410720450,
+      "asset_digest": "sha256:d211f4f68c7d02754fc34c2f6b8bf7c32b38bd06835846a385097250af4a93a6"
     },
     "x86_64-linux-gnu": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-x86_64-linux-gnu.tar.gz",
-      "sha256": "ccb2712f8030162c737e354629cf6d60c1ca3b98caa60c27bdd1ff77d160b04f"
+      "sha256": "ccb2712f8030162c737e354629cf6d60c1ca3b98caa60c27bdd1ff77d160b04f",
+      "asset_id": 410720446,
+      "asset_digest": "sha256:ccb2712f8030162c737e354629cf6d60c1ca3b98caa60c27bdd1ff77d160b04f"
     },
     "x86_64-linux-musl": {
       "url": "https://github.com/ewhauser/shuck-shells/releases/download/bash-5.3/bash-5.3-x86_64-linux-musl.tar.gz",
-      "sha256": "c74ece04d256b816f86733c292fc0efa89ffed95ca8220fe0d40c0b547bd0ecd"
+      "sha256": "c74ece04d256b816f86733c292fc0efa89ffed95ca8220fe0d40c0b547bd0ecd",
+      "asset_id": 410720457,
+      "asset_digest": "sha256:c74ece04d256b816f86733c292fc0efa89ffed95ca8220fe0d40c0b547bd0ecd"
     }
   }
 }

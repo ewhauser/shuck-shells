@@ -9,7 +9,7 @@ from typing import Iterable
 
 from shell_catalog import load_shell_catalog
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 ROOT_KIND = "shuck.shells.index"
 SHELL_KIND = "shuck.shells.versions"
 RELEASE_KIND = "shuck.shells.release"
@@ -101,12 +101,18 @@ def canonicalize_inventory(
             platforms = versions[version]
             canonical_platforms: OrderedDict[str, object] = OrderedDict()
             for platform in sorted(platforms):
-                canonical_platforms[platform] = OrderedDict(
+                artifact = platforms[platform]
+                canonical_artifact = OrderedDict(
                     (
-                        ("url", platforms[platform]["url"]),
-                        ("sha256", platforms[platform]["sha256"]),
+                        ("url", artifact["url"]),
+                        ("sha256", artifact["sha256"]),
                     )
                 )
+                if "asset_id" in artifact:
+                    canonical_artifact["asset_id"] = artifact["asset_id"]
+                if "asset_digest" in artifact:
+                    canonical_artifact["asset_digest"] = artifact["asset_digest"]
+                canonical_platforms[platform] = canonical_artifact
             canonical_versions[version] = OrderedDict((("platforms", canonical_platforms),))
         canonical_shells[shell] = OrderedDict((("versions", canonical_versions),))
     return canonical_shells
@@ -219,9 +225,15 @@ def validate_artifacts(
             raise IndexError(f"unsupported platform `{platform}`")
         if not isinstance(artifact, dict):
             raise IndexError(f"`{shell}` release `{version}` platform `{platform}` must be an object")
-        if list(artifact.keys()) != ["url", "sha256"]:
+        artifact_keys = list(artifact.keys())
+        if artifact_keys[:2] != ["url", "sha256"] or artifact_keys not in (
+            ["url", "sha256"],
+            ["url", "sha256", "asset_id"],
+            ["url", "sha256", "asset_digest"],
+            ["url", "sha256", "asset_id", "asset_digest"],
+        ):
             raise IndexError(
-                f"`{shell}` release `{version}` platform `{platform}` must contain only `url` and `sha256`"
+                f"`{shell}` release `{version}` platform `{platform}` must contain `url`, `sha256`, and optional asset provenance"
             )
         url = artifact["url"]
         sha256 = artifact["sha256"]
@@ -232,6 +244,21 @@ def validate_artifacts(
         if not isinstance(sha256, str) or not SHA256_PATTERN.fullmatch(sha256):
             raise IndexError(
                 f"`{shell}` release `{version}` platform `{platform}` sha256 must be a 64-character lowercase hex digest"
+            )
+        asset_id = artifact.get("asset_id")
+        if asset_id is not None and (
+            not isinstance(asset_id, int) or isinstance(asset_id, bool) or asset_id <= 0
+        ):
+            raise IndexError(
+                f"`{shell}` release `{version}` platform `{platform}` asset_id must be a positive integer"
+            )
+        asset_digest = artifact.get("asset_digest")
+        if asset_digest is not None and (
+            not isinstance(asset_digest, str)
+            or re.fullmatch(r"sha256:[0-9a-f]{64}", asset_digest) is None
+        ):
+            raise IndexError(
+                f"`{shell}` release `{version}` platform `{platform}` asset_digest must be a sha256 digest"
             )
 
 

@@ -23,7 +23,7 @@ class ValidateIndexTest(unittest.TestCase):
             "index.json",
             """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.index",
   "shells": {
     "bash": {
@@ -38,7 +38,7 @@ class ValidateIndexTest(unittest.TestCase):
             "shells/bash/index.json",
             """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.versions",
   "shell": "bash",
   "versions": {
@@ -54,7 +54,7 @@ class ValidateIndexTest(unittest.TestCase):
             "shells/bash/5.2.21.json",
             """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.2.21",
@@ -82,7 +82,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "index.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "version": 3,
   "kind": "shuck.shells.index",
   "shells": {}
@@ -101,7 +101,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/index.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.versions",
   "shell": "bash",
   "versions": {
@@ -120,7 +120,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/5.1.16.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.1.16",
@@ -145,7 +145,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/5.2.21.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.2.21",
@@ -170,7 +170,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/5.2.21.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.2.21",
@@ -195,7 +195,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/5.2.21.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "bash",
   "release": "5.2.21",
@@ -219,7 +219,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "index.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.index",
   "shells": {
     "bash": {
@@ -234,7 +234,7 @@ class ValidateIndexTest(unittest.TestCase):
                 "shells/bash/index.json",
                 """
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.versions",
   "shell": "bash",
   "versions": {

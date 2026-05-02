@@ -1,24 +1,32 @@
 {
-  "version": 2,
+  "version": 3,
   "kind": "shuck.shells.release",
   "shell": "gbash",
   "release": "0.0.13",
   "platforms": {
     "aarch64-darwin": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.13/gbash_0.0.13_darwin_arm64.tar.gz",
-      "sha256": "a60e67fc8ed9b83a048a90cb491fe2d467b66b94e8dfe0ccb34eecf42c9c3338"
+      "sha256": "a60e67fc8ed9b83a048a90cb491fe2d467b66b94e8dfe0ccb34eecf42c9c3338",
+      "asset_id": 374391142,
+      "asset_digest": "sha256:a60e67fc8ed9b83a048a90cb491fe2d467b66b94e8dfe0ccb34eecf42c9c3338"
     },
     "aarch64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.13/gbash_0.0.13_linux_arm64.tar.gz",
-      "sha256": "122e78776d1fc2bcef552bd2bd58bbba6b765b7dc628dc8516bc779d4bce4053"
+      "sha256": "122e78776d1fc2bcef552bd2bd58bbba6b765b7dc628dc8516bc779d4bce4053",
+      "asset_id": 374391146,
+      "asset_digest": "sha256:122e78776d1fc2bcef552bd2bd58bbba6b765b7dc628dc8516bc779d4bce4053"
     },
     "x86_64-darwin": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.13/gbash_0.0.13_darwin_amd64.tar.gz",
-      "sha256": "1d19ef86a1e0bda85126ecd9fcdd52af18ef3e86bb6e7230c63cf5f74455784b"
+      "sha256": "1d19ef86a1e0bda85126ecd9fcdd52af18ef3e86bb6e7230c63cf5f74455784b",
+      "asset_id": 374391141,
+      "asset_digest": "sha256:1d19ef86a1e0bda85126ecd9fcdd52af18ef3e86bb6e7230c63cf5f74455784b"
     },
     "x86_64-linux-gnu": {
       "url": "https://github.com/ewhauser/gbash/releases/download/v0.0.13/gbash_0.0.13_linux_amd64.tar.gz",
-      "sha256": "8a588fa507a80cedf38ba3bd7f9cc290eb81013da87730bdde2a08f36ba72a79"
+      "sha256": "8a588fa507a80cedf38ba3bd7f9cc290eb81013da87730bdde2a08f36ba72a79",
+      "asset_id": 374391147,
+      "asset_digest": "sha256:8a588fa507a80cedf38ba3bd7f9cc290eb81013da87730bdde2a08f36ba72a79"
     }
   }
 }
