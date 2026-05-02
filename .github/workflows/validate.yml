@@ -1,0 +1,59 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Validate checked-in index
+        run: python3 scripts/validate_index.py index.json
+
+      - name: Rebuild and verify checked-in index
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp index.json index.json.expected
+          python3 scripts/build_index.py --output index.json.generated
+          diff -u index.json.expected index.json.generated
+
+  auto-merge-generated-pr:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'bot/refresh-index'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Approve generated PR
+        env:
+          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_APPROVER_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr review "$PR_URL" --approve --body "Auto-approving generated index refresh."
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_APPROVER_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"
