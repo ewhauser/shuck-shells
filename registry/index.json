@@ -1,5 +1,9 @@
 {
   "version": 2,
   "kind": "shuck.shells.index",
-  "shells": {}
+  "shells": {
+    "bash": {
+      "versions_url": "shells/bash/index.json"
+    }
+  }
 }

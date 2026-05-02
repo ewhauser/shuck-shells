@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "bash",
+  "versions": {
+    "5.2.21": {
+      "manifest_url": "5.2.21.json"
+    }
+  }
+}
