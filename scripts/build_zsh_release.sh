@@ -69,19 +69,15 @@ mkdir -p "$bootstrap_dir"
 cat >"$bootstrap_dir/.zshenv" <<'EOF'
 typeset -gaU module_path fpath
 
-for candidate in "$SHUCK_ZSH_ROOT"/lib/zsh/*; do
-  if [[ -d "$candidate" ]]; then
-    module_path=("$candidate" $module_path)
-    break
-  fi
-done
+module_candidates=("$SHUCK_ZSH_ROOT"/lib/zsh/*(N/))
+if (( ${#module_candidates} )); then
+  module_path=("$module_candidates[1]" $module_path)
+fi
 
-for candidate in "$SHUCK_ZSH_ROOT"/share/zsh/*/functions; do
-  if [[ -d "$candidate" ]]; then
-    fpath=("$candidate" $fpath)
-    break
-  fi
-done
+function_candidates=("$SHUCK_ZSH_ROOT"/share/zsh/*/functions(N/))
+if (( ${#function_candidates} )); then
+  fpath=("$function_candidates[1]" $fpath)
+fi
 
 if [[ -d "$SHUCK_ZSH_ROOT/share/zsh/site-functions" ]]; then
   fpath=("$SHUCK_ZSH_ROOT/share/zsh/site-functions" $fpath)
