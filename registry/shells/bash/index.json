@@ -3,6 +3,9 @@
   "kind": "shuck.shells.versions",
   "shell": "bash",
   "versions": {
+    "5.3": {
+      "manifest_url": "5.3.json"
+    },
     "5.2.21": {
       "manifest_url": "5.2.21.json"
     }
