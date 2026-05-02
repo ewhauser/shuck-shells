@@ -6,6 +6,7 @@ It owns:
 
 - release assets for shell archives
 - generated registry JSON documents under `registry/`
+- CI workflows that build and publish Bash release archives
 - automation to refresh that index from releases
 - GitHub Pages publication for the generated JSON
 
@@ -107,9 +108,34 @@ python3 scripts/build_index.py --output-dir registry
 
 That mode uses `GITHUB_REPOSITORY` by default, or `--repo owner/name` to override it.
 
+## Building Bash archives
+
+`shuck-shells` builds and publishes Bash archives itself from the official GNU source tarballs.
+
+- workflow: `.github/workflows/build-bash-release.yml`
+- trigger: manual `workflow_dispatch`
+- source tarball: `https://ftp.gnu.org/pub/gnu/bash/bash-<version>.tar.gz`
+- published asset names:
+  - `bash-<version>-x86_64-linux.tar.gz`
+  - `bash-<version>-aarch64-linux.tar.gz`
+  - `bash-<version>-x86_64-darwin.tar.gz`
+  - `bash-<version>-aarch64-darwin.tar.gz`
+
+The workflow currently builds on these GitHub-hosted runner labels:
+
+- `ubuntu-22.04`
+- `ubuntu-22.04-arm`
+- `macos-15-intel`
+- `macos-15`
+
+The release tag format stays `<shell>-<version>`, so a Bash build for `5.2.21` publishes or updates the release tag `bash-5.2.21`.
+
+Current limitation: the Linux archives are built on GitHub-hosted Ubuntu 22.04 runners, so their runtime compatibility follows that glibc baseline. This is a pragmatic first pass, not a broadest-possible Linux compatibility guarantee.
+
 ## Automation
 
 - `refresh-index.yml` regenerates the checked-in registry tree nightly and opens or updates a PR if it changes.
+- `refresh-index.yml` also runs automatically when a new shell release is published.
 - `validate.yml` validates the JSON schema, canonical ordering, and script tests on PRs and `main`.
 - `publish-pages.yml` publishes the merged `registry/` tree to GitHub Pages.
 

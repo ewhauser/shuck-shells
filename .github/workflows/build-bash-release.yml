@@ -1,0 +1,90 @@
+name: Build Bash Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: GNU Bash release version to build
+        required: true
+        type: string
+
+run-name: Build bash ${{ inputs.version }}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-bash-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            platform: x86_64-linux
+          - runner: ubuntu-22.04-arm
+            platform: aarch64-linux
+          - runner: macos-15-intel
+            platform: x86_64-darwin
+          - runner: macos-15
+            platform: aarch64-darwin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build archive
+        run: |
+          chmod +x scripts/build_bash_release.sh
+          scripts/build_bash_release.sh "${{ inputs.version }}" "${{ matrix.platform }}" dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bash-${{ inputs.version }}-${{ matrix.platform }}
+          path: dist/bash-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SHUCK_SHELLS_APP_ID }}
+          private-key: ${{ secrets.SHUCK_SHELLS_APP_PRIVATE_KEY }}
+
+      - name: Verify GitHub App installation
+        run: test "${{ steps.app-token.outputs.installation-id }}" = "${{ secrets.SHUCK_SHELLS_APP_INSTALLATION_ID }}"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: bash-${{ inputs.version }}-*
+          merge-multiple: true
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          RELEASE_TAG: bash-${{ inputs.version }}
+          RELEASE_TITLE: bash ${{ inputs.version }}
+        run: |
+          ls -l dist
+          if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/*.tar.gz --clobber --repo "$REPO"
+          else
+            gh release create "$RELEASE_TAG" dist/*.tar.gz \
+              --repo "$REPO" \
+              --title "$RELEASE_TITLE" \
+              --notes "Automated Bash ${{ inputs.version }} builds for shuck-shells."
+          fi
