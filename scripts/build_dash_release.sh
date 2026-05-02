@@ -10,7 +10,7 @@ version="$1"
 platform="$2"
 output_dir="$3"
 
-source_url="https://gondor.apana.org.au/~herbert/dash/files/dash-${version}.tar.gz"
+source_url="https://kernel.googlesource.com/pub/scm/utils/dash/dash/+archive/refs/tags/v${version}.tar.gz"
 work_root="$(mktemp -d)"
 trap 'rm -rf "$work_root"' EXIT
 
@@ -25,7 +25,19 @@ mkdir -p "$output_dir" "$build_dir"
 
 echo "Downloading ${source_url}"
 curl -fsSL "$source_url" -o "$source_archive"
-tar -xzf "$source_archive" -C "$work_root"
+mkdir -p "$source_dir"
+tar -xzf "$source_archive" -C "$source_dir"
+
+if [[ ! -x "$source_dir/configure" ]]; then
+  if [[ -x "$source_dir/autogen.sh" ]]; then
+    (cd "$source_dir" && ./autogen.sh)
+  elif [[ -f "$source_dir/autogen.sh" ]]; then
+    (cd "$source_dir" && sh ./autogen.sh)
+  else
+    echo "dash source archive does not contain configure or autogen.sh" >&2
+    exit 1
+  fi
+fi
 
 pushd "$build_dir" >/dev/null
 "$source_dir/configure" --prefix=/usr/local

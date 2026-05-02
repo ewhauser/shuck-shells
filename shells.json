@@ -46,10 +46,10 @@
     },
     "upstream": {
       "discovery_urls": [
-        "https://gondor.apana.org.au/~herbert/dash/",
-        "https://gondor.apana.org.au/~herbert/dash/files/"
+        "https://kernel.googlesource.com/pub/scm/utils/dash/dash/%2Blog",
+        "https://kernel.googlesource.com/pub/scm/utils/dash/dash/"
       ],
-      "version_pattern": "dash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
+      "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)"
     }
   },
   "gbash": {

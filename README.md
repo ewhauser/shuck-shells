@@ -173,7 +173,8 @@ Current buildable shells:
   - source tarball: `https://ftp.gnu.org/pub/gnu/bash/bash-<version>.tar.gz`
 - `dash`
   - builder: `scripts/build_dash_release.sh`
-  - source tarball: `https://gondor.apana.org.au/~herbert/dash/files/dash-<version>.tar.gz`
+  - source archive: `https://kernel.googlesource.com/pub/scm/utils/dash/dash/+archive/refs/tags/v<version>.tar.gz`
+  - discovery source: `https://kernel.googlesource.com/pub/scm/utils/dash/dash/`
 - `mksh`
   - builder: `scripts/build_mksh_release.sh`
   - source tarball: `https://mbsd.evolvis.org/MirOS/dist/mir/mksh/mksh-<version>.tgz`
