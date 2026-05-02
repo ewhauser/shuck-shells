@@ -15,7 +15,7 @@ on:
 run-name: Build ${{ inputs.shell }} ${{ inputs.version }}
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: build-${{ inputs.shell }}-${{ inputs.version }}
@@ -29,9 +29,10 @@ jobs:
       skip_build: ${{ steps.check-release.outputs.skip_build }}
       release_exists: ${{ steps.check-release.outputs.release_exists }}
       missing_assets: ${{ steps.check-release.outputs.missing_assets }}
+      source_sha256s: ${{ steps.check-release.outputs.source_sha256s }}
       supported_platforms: ${{ steps.check-release.outputs.supported_platforms }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
 
@@ -40,23 +41,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ inputs.shell }}-${{ inputs.version }}
           SHELL_NAME: ${{ inputs.shell }}
           SHELL_VERSION: ${{ inputs.version }}
         run: |
           python3 - <<'PY'
           import json
           import os
+          import re
           import subprocess
           import sys
 
           sys.path.insert(0, os.path.join(os.getcwd(), "scripts"))
-          from shell_catalog import shell_supported_platforms
+          from shell_catalog import shell_supported_platforms, upstream_source_sha256s
 
           shell_name = os.environ["SHELL_NAME"]
           shell_version = os.environ["SHELL_VERSION"]
-          release_tag = os.environ["RELEASE_TAG"]
+          if not re.fullmatch(r"[a-z][a-z0-9-]*", shell_name):
+              raise SystemExit(f"invalid shell name: {shell_name!r}")
+          if not re.fullmatch(r"[0-9A-Za-z][0-9A-Za-z._-]*", shell_version):
+              raise SystemExit(f"invalid shell version: {shell_version!r}")
+          release_tag = f"{shell_name}-{shell_version}"
           supported_platforms = shell_supported_platforms(shell_name)
+          source_sha256s = upstream_source_sha256s(shell_name, shell_version)
           expected_assets = [
               f"{shell_name}-{shell_version}-{platform}.tar.gz"
               for platform in supported_platforms
@@ -79,6 +85,10 @@ jobs:
 
           if release_exists:
               payload = json.loads(release.stdout)
+              if payload.get("draft"):
+                  raise SystemExit(
+                      f"Release {release_tag} already exists as a draft; delete or publish it before rebuilding."
+                  )
               existing_assets = {
                   asset["name"]
                   for asset in payload.get("assets", [])
@@ -86,6 +96,10 @@ jobs:
               missing_assets = [
                   asset for asset in expected_assets if asset not in existing_assets
               ]
+              if missing_assets:
+                  raise SystemExit(
+                      f"Published release {release_tag} is missing immutable assets: {', '.join(missing_assets)}"
+                  )
               skip_build = not missing_assets
 
           github_output = os.environ["GITHUB_OUTPUT"]
@@ -98,6 +112,9 @@ jobs:
               )
               handle.write(
                   f"missing_assets={json.dumps(missing_assets, separators=(',', ':'))}\n"
+              )
+              handle.write(
+                  f"source_sha256s={json.dumps(source_sha256s, separators=(',', ':'))}\n"
               )
               handle.write(
                   f"supported_platforms={json.dumps(supported_platforms, separators=(',', ':'))}\n"
@@ -129,7 +146,7 @@ jobs:
           - runner: ubuntu-22.04-arm
             platform: aarch64-linux-gnu
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
@@ -144,11 +161,23 @@ jobs:
 
       - name: Build archive
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+          SOURCE_SHA256S: ${{ needs.preflight.outputs.source_sha256s }}
         run: |
+          SOURCE_SHA256="$(
+            python3 - <<'PY'
+          import json
+          import os
+          print(json.loads(os.environ["SOURCE_SHA256S"])[os.environ["PLATFORM"]])
+          PY
+          )"
           chmod +x scripts/build_shell_release.sh
-          scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
+          scripts/build_shell_release.sh "$SHELL_NAME" "$SHELL_VERSION" "$PLATFORM" "$SOURCE_SHA256" dist
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -169,25 +198,42 @@ jobs:
           - runner: ubuntu-22.04-arm
             platform: aarch64-linux-musl
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
 
       - name: Build archive in Alpine
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+          SOURCE_SHA256S: ${{ needs.preflight.outputs.source_sha256s }}
         run: |
+          SOURCE_SHA256="$(
+            python3 - <<'PY'
+          import json
+          import os
+          print(json.loads(os.environ["SOURCE_SHA256S"])[os.environ["PLATFORM"]])
+          PY
+          )"
+          export SOURCE_SHA256
           docker run --rm \
+            -e PLATFORM \
+            -e SHELL_NAME \
+            -e SHELL_VERSION \
+            -e SOURCE_SHA256 \
             -v "$PWD:/workspace" \
             -w /workspace \
             alpine:3.22 \
             sh -lc '
               apk add --no-cache autoconf automake bash build-base curl ed ncurses-dev python3 tar xz
               chmod +x scripts/build_shell_release.sh
-              scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
+              scripts/build_shell_release.sh "$SHELL_NAME" "$SHELL_VERSION" "$PLATFORM" "$SOURCE_SHA256" dist
             '
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -208,7 +254,7 @@ jobs:
           - runner: macos-15
             platform: aarch64-darwin
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
@@ -222,11 +268,23 @@ jobs:
 
       - name: Build archive
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+          SOURCE_SHA256S: ${{ needs.preflight.outputs.source_sha256s }}
         run: |
+          SOURCE_SHA256="$(
+            python3 - <<'PY'
+          import json
+          import os
+          print(json.loads(os.environ["SOURCE_SHA256S"])[os.environ["PLATFORM"]])
+          PY
+          )"
           chmod +x scripts/build_shell_release.sh
-          scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
+          scripts/build_shell_release.sh "$SHELL_NAME" "$SHELL_VERSION" "$PLATFORM" "$SOURCE_SHA256" dist
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
@@ -247,15 +305,18 @@ jobs:
     steps:
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
         with:
           app-id: ${{ secrets.SHUCK_SHELLS_APP_ID }}
           private-key: ${{ secrets.SHUCK_SHELLS_APP_PRIVATE_KEY }}
 
       - name: Verify GitHub App installation
-        run: test "${{ steps.app-token.outputs.installation-id }}" = "${{ secrets.SHUCK_SHELLS_APP_INSTALLATION_ID }}"
+        env:
+          ACTUAL_INSTALLATION_ID: ${{ steps.app-token.outputs.installation-id }}
+          EXPECTED_INSTALLATION_ID: ${{ secrets.SHUCK_SHELLS_APP_INSTALLATION_ID }}
+        run: test "$ACTUAL_INSTALLATION_ID" = "$EXPECTED_INSTALLATION_ID"
 
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: dist
           pattern: ${{ inputs.shell }}-${{ inputs.version }}-*
@@ -265,15 +326,87 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ inputs.shell }}-${{ inputs.version }}
-          RELEASE_TITLE: ${{ inputs.shell }} ${{ inputs.version }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+          SUPPORTED_PLATFORMS: ${{ needs.preflight.outputs.supported_platforms }}
         run: |
+          RELEASE_TAG="${SHELL_NAME}-${SHELL_VERSION}"
+          RELEASE_TITLE="${SHELL_NAME} ${SHELL_VERSION}"
+          export RELEASE_TAG RELEASE_TITLE
           ls -l dist
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          shell_name = os.environ["SHELL_NAME"]
+          shell_version = os.environ["SHELL_VERSION"]
+          supported_platforms = json.loads(os.environ["SUPPORTED_PLATFORMS"])
+          expected_assets = {
+              f"{shell_name}-{shell_version}-{platform}.tar.gz"
+              for platform in supported_platforms
+          }
+          actual_assets = {
+              path.name for path in Path("dist").glob("*.tar.gz")
+          }
+          if actual_assets != expected_assets:
+              missing = sorted(expected_assets - actual_assets)
+              extra = sorted(actual_assets - expected_assets)
+              raise SystemExit(
+                  "release artifact set mismatch; "
+                  f"missing={missing or '[]'} extra={extra or '[]'}"
+              )
+          PY
+
           if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" dist/*.tar.gz --clobber --repo "$REPO"
-          else
-            gh release create "$RELEASE_TAG" dist/*.tar.gz \
-              --repo "$REPO" \
-              --title "$RELEASE_TITLE" \
-              --notes "Automated ${{ inputs.shell }} ${{ inputs.version }} builds for shuck-shells."
+            echo "Release $RELEASE_TAG already exists; refusing to mutate immutable release assets." >&2
+            exit 1
           fi
+
+          gh release create "$RELEASE_TAG" dist/*.tar.gz \
+            --draft \
+            --repo "$REPO" \
+            --title "$RELEASE_TITLE" \
+            --notes "Automated ${RELEASE_TITLE} builds for shuck-shells."
+
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          release_tag = os.environ["RELEASE_TAG"]
+          repo = os.environ["REPO"]
+          shell_name = os.environ["SHELL_NAME"]
+          shell_version = os.environ["SHELL_VERSION"]
+          supported_platforms = json.loads(os.environ["SUPPORTED_PLATFORMS"])
+          expected_assets = sorted(
+              f"{shell_name}-{shell_version}-{platform}.tar.gz"
+              for platform in supported_platforms
+          )
+          release = subprocess.run(
+              [
+                  "gh",
+                  "release",
+                  "view",
+                  release_tag,
+                  "--repo",
+                  repo,
+                  "--json",
+                  "assets,isDraft",
+              ],
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          payload = json.loads(release.stdout)
+          if payload.get("isDraft") is not True:
+              raise SystemExit(f"Release {release_tag} was not created as a draft")
+          actual_assets = sorted(asset["name"] for asset in payload.get("assets", []))
+          if actual_assets != expected_assets:
+              raise SystemExit(
+                  f"Draft release {release_tag} asset set mismatch: {actual_assets}"
+              )
+          PY
+
+          gh release edit "$RELEASE_TAG" --repo "$REPO" --draft=false

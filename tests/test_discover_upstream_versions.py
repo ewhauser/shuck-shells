@@ -48,6 +48,9 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/bash"],
                     "version_pattern": r"bash-([0-9]+(?:\.[0-9]+)*)\.tar\.gz",
+                    "source_sha256s": {
+                        "5.2.21": "a" * 64,
+                    },
                 },
             },
             "zsh": {
@@ -60,6 +63,9 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/zsh"],
                     "version_pattern": r"zsh-([0-9]+(?:\.[0-9]+)*)\.tar\.xz",
+                    "source_sha256s": {
+                        "5.9": "b" * 64,
+                    },
                 },
             },
         }
@@ -91,7 +97,13 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
 
         self.assertEqual(
             result["pending_builds"],
-            [{"shell": "zsh", "version": "5.9"}],
+            [
+                {
+                    "shell": "zsh",
+                    "version": "5.9",
+                    "source_sha256s": {"x86_64-linux-gnu": "b" * 64},
+                }
+            ],
         )
         self.assertEqual(
             result["discovered"],
@@ -102,6 +114,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                     "release_tag": "bash-5.2.21",
                     "discovery_url": "https://example.invalid/bash",
                     "release_exists": True,
+                    "source_sha256s": {"x86_64-linux-gnu": "a" * 64},
                 },
                 {
                     "shell": "zsh",
@@ -109,6 +122,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                     "release_tag": "zsh-5.9",
                     "discovery_url": "https://example.invalid/zsh",
                     "release_exists": False,
+                    "source_sha256s": {"x86_64-linux-gnu": "b" * 64},
                 },
             ],
         )
@@ -125,6 +139,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/bash"],
                     "version_pattern": r"bash-([0-9]+(?:\.[0-9]+)*)\.tar\.gz",
+                    "source_sha256s": {},
                 },
             },
             "zsh": {
@@ -137,6 +152,9 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/zsh"],
                     "version_pattern": r"zsh-([0-9]+(?:\.[0-9]+)*)\.tar\.xz",
+                    "source_sha256s": {
+                        "5.9": "b" * 64,
+                    },
                 },
             },
         }
@@ -163,7 +181,16 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 else:
                     os.environ["SHUCK_SHELLS_CATALOG_PATH"] = old_value
 
-        self.assertEqual(result["pending_builds"], [{"shell": "zsh", "version": "5.9"}])
+        self.assertEqual(
+            result["pending_builds"],
+            [
+                {
+                    "shell": "zsh",
+                    "version": "5.9",
+                    "source_sha256s": {"x86_64-linux-gnu": "b" * 64},
+                }
+            ],
+        )
         self.assertEqual(
             result["discovered"],
             [
@@ -178,7 +205,61 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                     "release_tag": "zsh-5.9",
                     "discovery_url": "https://example.invalid/zsh",
                     "release_exists": False,
+                    "source_sha256s": {"x86_64-linux-gnu": "b" * 64},
                 },
+            ],
+        )
+
+    def test_discover_pending_builds_skips_missing_source_sha256(self) -> None:
+        catalog = {
+            "bash": {
+                "display_name": "Bash",
+                "release_source": {
+                    "kind": "build",
+                    "builder": "scripts/build_bash_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
+                },
+                "upstream": {
+                    "discovery_urls": ["https://example.invalid/bash"],
+                    "version_pattern": r"bash-([0-9]+(?:\.[0-9]+)*)\.tar\.gz",
+                    "source_sha256s": {},
+                },
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            catalog_path = Path(tempdir) / "shells.json"
+            catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+            old_value = os.environ.get("SHUCK_SHELLS_CATALOG_PATH")
+            os.environ["SHUCK_SHELLS_CATALOG_PATH"] = str(catalog_path)
+            try:
+                with patch(
+                    "discover_upstream_versions.iter_repo_releases",
+                    return_value=[],
+                ):
+                    result = discover_pending_builds(
+                        "owner/repo",
+                        page_fetcher=lambda url: "bash-5.3.tar.gz",
+                    )
+            finally:
+                if old_value is None:
+                    os.environ.pop("SHUCK_SHELLS_CATALOG_PATH", None)
+                else:
+                    os.environ["SHUCK_SHELLS_CATALOG_PATH"] = old_value
+
+        self.assertEqual(result["pending_builds"], [])
+        self.assertEqual(
+            result["discovered"],
+            [
+                {
+                    "shell": "bash",
+                    "version": "5.3",
+                    "release_tag": "bash-5.3",
+                    "discovery_url": "https://example.invalid/bash",
+                    "release_exists": False,
+                    "source_sha256_missing": True,
+                    "error": "shell `bash` version `5.3` is missing upstream source_sha256",
+                }
             ],
         )
 

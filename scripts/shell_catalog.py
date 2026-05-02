@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 from typing import Any
 
 DEFAULT_CATALOG_PATH = Path(__file__).resolve().parents[1] / "shells.json"
@@ -119,6 +120,7 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
                 )
             discovery_urls = upstream.get("discovery_urls")
             version_pattern = upstream.get("version_pattern")
+            source_sha256s = upstream.get("source_sha256s")
             if (
                 not isinstance(discovery_urls, list)
                 or not discovery_urls
@@ -134,6 +136,38 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
                 raise CatalogError(
                     f"shell catalog entry `{shell}` must define an upstream version_pattern"
                 )
+            if not isinstance(source_sha256s, dict):
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define upstream source_sha256s"
+                )
+            supported_platforms_for_source = release_source["supported_platforms"]
+            for version, source_sha256 in source_sha256s.items():
+                if not isinstance(version, str) or not version:
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has an invalid source_sha256s version"
+                    )
+                if isinstance(source_sha256, str):
+                    if re.fullmatch(r"[0-9a-f]{64}", source_sha256) is None:
+                        raise CatalogError(
+                            f"shell catalog entry `{shell}` has an invalid sha256 for version `{version}`"
+                        )
+                    continue
+                if not isinstance(source_sha256, dict):
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has an invalid sha256 for version `{version}`"
+                    )
+                platform_names = list(source_sha256.keys())
+                if platform_names != sorted(supported_platforms_for_source):
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` source_sha256s for version `{version}` must cover supported_platforms"
+                    )
+                for platform, platform_sha256 in source_sha256.items():
+                    if not isinstance(platform_sha256, str) or re.fullmatch(
+                        r"[0-9a-f]{64}", platform_sha256
+                    ) is None:
+                        raise CatalogError(
+                            f"shell catalog entry `{shell}` has an invalid sha256 for version `{version}` platform `{platform}`"
+                        )
     return payload
 
 
@@ -229,6 +263,46 @@ def upstream_version_pattern(shell: str) -> str:
     return str(upstream["version_pattern"])
 
 
+def upstream_source_sha256s(shell: str, version: str) -> dict[str, str]:
+    if release_source_kind(shell) != "build":
+        raise CatalogError(f"shell `{shell}` is not built from upstream source")
+    metadata = shell_metadata(shell)
+    upstream = metadata["upstream"]
+    source_sha256s = upstream["source_sha256s"]
+    try:
+        source_sha256 = source_sha256s[version]
+    except KeyError as exc:
+        raise CatalogError(
+            f"shell `{shell}` version `{version}` is missing upstream source_sha256"
+        ) from exc
+    if isinstance(source_sha256, str):
+        return {
+            platform: source_sha256
+            for platform in shell_supported_platforms(shell)
+        }
+    return {
+        str(platform): str(platform_sha256)
+        for platform, platform_sha256 in source_sha256.items()
+    }
+
+
+def upstream_source_sha256(shell: str, version: str, platform: str | None = None) -> str:
+    source_sha256s = upstream_source_sha256s(shell, version)
+    if platform is None:
+        unique_sha256s = sorted(set(source_sha256s.values()))
+        if len(unique_sha256s) == 1:
+            return unique_sha256s[0]
+        raise CatalogError(
+            f"shell `{shell}` version `{version}` has platform-specific upstream source_sha256s"
+        )
+    try:
+        return source_sha256s[platform]
+    except KeyError as exc:
+        raise CatalogError(
+            f"shell `{shell}` version `{version}` is missing upstream source_sha256 for platform `{platform}`"
+        ) from exc
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Inspect shuck-shells shell metadata.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -245,6 +319,11 @@ def parse_args() -> argparse.Namespace:
     ):
         subparser = subparsers.add_parser(command)
         subparser.add_argument("shell")
+
+    subparser = subparsers.add_parser("upstream-source-sha256")
+    subparser.add_argument("shell")
+    subparser.add_argument("version")
+    subparser.add_argument("platform", nargs="?")
 
     subparsers.add_parser("buildable-shells")
     return parser.parse_args()
@@ -277,6 +356,9 @@ def main() -> None:
             return
         if args.command == "upstream-version-pattern":
             print(upstream_version_pattern(args.shell))
+            return
+        if args.command == "upstream-source-sha256":
+            print(upstream_source_sha256(args.shell, args.version, args.platform))
             return
         if args.command == "buildable-shells":
             catalog = load_shell_catalog()

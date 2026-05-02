@@ -23,6 +23,7 @@ bash -n scripts/build_busybox_release.sh
 bash -n scripts/build_dash_release.sh
 bash -n scripts/build_mksh_release.sh
 bash -n scripts/build_zsh_release.sh
+bash -n scripts/verify_source_sha256.sh
 ```
 
 Rebuild the checked-in index from live releases in the current repository:
@@ -44,6 +45,7 @@ Each shell entry declares:
 - for buildable shells, the builder script used by the release workflow
 - for GitHub-release shells, the upstream repo plus tag and asset matching rules
 - upstream discovery metadata for automatic version detection
+- expected upstream source SHA-256 values for buildable shell versions
 
 Current release sources:
 
@@ -64,11 +66,15 @@ The catalog drives both paths, so the registry can mix repo-built shells with ex
 
 The workflow only builds shells whose `release_source.kind` is `build`. If a later shell is cataloged under another source kind, the workflow fails fast instead of pretending to support it.
 
+Buildable versions must also have an expected upstream source digest in `upstream.source_sha256s`. The release workflow verifies the downloaded upstream archive against that digest before extracting or compiling it. If discovery finds a newer upstream version without a cataloged digest, the nightly job reports it but does not dispatch a build.
+
 The workflow performs a release preflight check before starting the matrix:
 
 - if the `<shell>-<version>` release does not exist yet, it builds the shell's supported platform archives
-- if the release exists but is missing one or more expected supported-platform assets, it rebuilds and republishes the version
+- if the published release exists but is missing one or more expected supported-platform assets, it fails instead of mutating release assets
 - if the release already has the full expected asset set, it exits before running the build matrix
+
+Release immutability is enabled for this repository. New releases are created as drafts, checked for the full expected asset set, and then published. After publication, tags and assets are not expected to be modified.
 
 ### Buildable shells
 
