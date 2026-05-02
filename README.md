@@ -158,8 +158,6 @@ The automation uses one GitHub App installation with these repository secrets:
 - `SHUCK_SHELLS_APP_INSTALLATION_ID`
 - `SHUCK_SHELLS_APP_PRIVATE_KEY`
 
-The local setup script can read the private key either from `SHUCK_SHELLS_APP_PRIVATE_KEY` directly or from a file path via `SHUCK_SHELLS_APP_PRIVATE_KEY_FILE`.
-
 The workflows mint a short-lived installation token at runtime from those values. This setup intentionally does not require PR approvals on `main`. The nightly workflow opens or updates the refresh PR, and the validation workflow enables auto-merge after the required checks pass.
 
 The app only needs repository access to `shuck-shells` with:
