@@ -18,6 +18,7 @@ from shell_catalog import (  # noqa: E402
     load_shell_catalog,
     release_source_kind,
     shell_display_name,
+    shell_supported_platforms,
 )
 
 
@@ -26,11 +27,12 @@ class ShellCatalogTest(unittest.TestCase):
         catalog = load_shell_catalog()
         self.assertEqual(
             list(catalog.keys()),
-            ["bash", "bashkit", "dash", "gbash", "mksh", "zsh"],
+            ["bash", "bashkit", "busybox", "dash", "gbash", "mksh", "zsh"],
         )
 
     def test_buildable_shells_have_build_scripts(self) -> None:
         self.assertEqual(build_script("bash"), "scripts/build_bash_release.sh")
+        self.assertEqual(build_script("busybox"), "scripts/build_busybox_release.sh")
         self.assertEqual(build_script("dash"), "scripts/build_dash_release.sh")
         self.assertEqual(build_script("mksh"), "scripts/build_mksh_release.sh")
         self.assertEqual(build_script("zsh"), "scripts/build_zsh_release.sh")
@@ -74,10 +76,42 @@ class ShellCatalogTest(unittest.TestCase):
     def test_shell_display_name(self) -> None:
         self.assertEqual(shell_display_name("bash"), "Bash")
         self.assertEqual(shell_display_name("bashkit"), "bashkit")
+        self.assertEqual(shell_display_name("busybox"), "BusyBox")
         self.assertEqual(shell_display_name("dash"), "dash")
         self.assertEqual(shell_display_name("gbash"), "gbash")
         self.assertEqual(shell_display_name("mksh"), "mksh")
         self.assertEqual(shell_display_name("zsh"), "Zsh")
+
+    def test_supported_platforms(self) -> None:
+        self.assertEqual(
+            shell_supported_platforms("busybox"),
+            [
+                "aarch64-linux-gnu",
+                "aarch64-linux-musl",
+                "x86_64-linux-gnu",
+                "x86_64-linux-musl",
+            ],
+        )
+        self.assertEqual(
+            shell_supported_platforms("bash"),
+            [
+                "aarch64-darwin",
+                "aarch64-linux-gnu",
+                "aarch64-linux-musl",
+                "x86_64-darwin",
+                "x86_64-linux-gnu",
+                "x86_64-linux-musl",
+            ],
+        )
+        self.assertEqual(
+            shell_supported_platforms("gbash"),
+            [
+                "aarch64-darwin",
+                "aarch64-linux-gnu",
+                "x86_64-darwin",
+                "x86_64-linux-gnu",
+            ],
+        )
 
     def test_github_release_metadata(self) -> None:
         self.assertEqual(github_release_repo("bashkit"), "everruns/bashkit")
@@ -121,7 +155,10 @@ class ShellCatalogTest(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        self.assertEqual(result.stdout.strip().splitlines(), ["bash", "dash", "mksh", "zsh"])
+        self.assertEqual(
+            result.stdout.strip().splitlines(),
+            ["bash", "busybox", "dash", "mksh", "zsh"],
+        )
 
 
 if __name__ == "__main__":

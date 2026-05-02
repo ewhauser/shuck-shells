@@ -29,7 +29,12 @@ jobs:
       skip_build: ${{ steps.check-release.outputs.skip_build }}
       release_exists: ${{ steps.check-release.outputs.release_exists }}
       missing_assets: ${{ steps.check-release.outputs.missing_assets }}
+      supported_platforms: ${{ steps.check-release.outputs.supported_platforms }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Check existing release assets
         id: check-release
         env:
@@ -43,21 +48,18 @@ jobs:
           import json
           import os
           import subprocess
+          import sys
 
-          expected_platforms = [
-              "x86_64-linux-gnu",
-              "aarch64-linux-gnu",
-              "x86_64-linux-musl",
-              "aarch64-linux-musl",
-              "x86_64-darwin",
-              "aarch64-darwin",
-          ]
+          sys.path.insert(0, os.path.join(os.getcwd(), "scripts"))
+          from shell_catalog import shell_supported_platforms
+
           shell_name = os.environ["SHELL_NAME"]
           shell_version = os.environ["SHELL_VERSION"]
           release_tag = os.environ["RELEASE_TAG"]
+          supported_platforms = shell_supported_platforms(shell_name)
           expected_assets = [
               f"{shell_name}-{shell_version}-{platform}.tar.gz"
-              for platform in expected_platforms
+              for platform in supported_platforms
           ]
 
           release = subprocess.run(
@@ -97,6 +99,9 @@ jobs:
               handle.write(
                   f"missing_assets={json.dumps(missing_assets, separators=(',', ':'))}\n"
               )
+              handle.write(
+                  f"supported_platforms={json.dumps(supported_platforms, separators=(',', ':'))}\n"
+              )
 
           if skip_build:
               print(
@@ -125,11 +130,12 @@ jobs:
             platform: aarch64-linux-gnu
     steps:
       - uses: actions/checkout@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
 
       - name: Install dash build prerequisites
-        if: ${{ inputs.shell == 'dash' }}
+        if: ${{ inputs.shell == 'dash' && contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         run: |
           if ! command -v autoconf >/dev/null 2>&1 || ! command -v automake >/dev/null 2>&1; then
             sudo apt-get update
@@ -137,11 +143,13 @@ jobs:
           fi
 
       - name: Build archive
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         run: |
           chmod +x scripts/build_shell_release.sh
           scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
       - uses: actions/upload-artifact@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
           path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
@@ -162,10 +170,12 @@ jobs:
             platform: aarch64-linux-musl
     steps:
       - uses: actions/checkout@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
 
       - name: Build archive in Alpine
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         run: |
           docker run --rm \
             -v "$PWD:/workspace" \
@@ -178,6 +188,7 @@ jobs:
             '
 
       - uses: actions/upload-artifact@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
           path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
@@ -198,22 +209,25 @@ jobs:
             platform: aarch64-darwin
     steps:
       - uses: actions/checkout@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           persist-credentials: false
 
       - name: Install dash build prerequisites
-        if: ${{ inputs.shell == 'dash' }}
+        if: ${{ inputs.shell == 'dash' && contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         run: |
           if ! command -v autoconf >/dev/null 2>&1 || ! command -v automake >/dev/null 2>&1; then
             brew install autoconf automake
           fi
 
       - name: Build archive
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         run: |
           chmod +x scripts/build_shell_release.sh
           scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
       - uses: actions/upload-artifact@v4
+        if: ${{ contains(fromJSON(needs.preflight.outputs.supported_platforms), matrix.platform) }}
         with:
           name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
           path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz

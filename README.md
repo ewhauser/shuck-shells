@@ -31,6 +31,7 @@ Supported shells:
 
 - `bash`
 - `bashkit`
+- `busybox`
 - `zsh`
 - `dash`
 - `gbash`
@@ -109,6 +110,7 @@ python3 -m unittest discover -s tests
 python3 scripts/discover_upstream_versions.py --pretty --repo owner/name
 bash -n scripts/build_shell_release.sh
 bash -n scripts/build_bash_release.sh
+bash -n scripts/build_busybox_release.sh
 bash -n scripts/build_dash_release.sh
 bash -n scripts/build_mksh_release.sh
 bash -n scripts/build_zsh_release.sh
@@ -138,6 +140,7 @@ Current release sources:
 
 Build-from-source shells:
 - `bash`
+- `busybox`
 - `dash`
 - `mksh`
 - `zsh`
@@ -150,7 +153,7 @@ The catalog drives both paths, so the registry can mix repo-built shells with ex
 
 ## Building shell archives
 
-`shuck-shells` currently builds and publishes `bash`, `dash`, `mksh`, and `zsh` archives itself from upstream source tarballs.
+`shuck-shells` currently builds and publishes `bash`, `busybox`, `dash`, `mksh`, and `zsh` archives itself from upstream source tarballs.
 
 - workflow: `.github/workflows/build-shell-release.yml`
 - trigger: manual `workflow_dispatch`
@@ -162,8 +165,8 @@ The workflow only builds shells whose `release_source.kind` is `build`. If a lat
 
 The workflow also performs a release preflight check before starting the matrix:
 
-- if the `<shell>-<version>` release does not exist yet, it builds all six platform archives
-- if the release exists but is missing one or more expected assets, it rebuilds and republishes the version
+- if the `<shell>-<version>` release does not exist yet, it builds the shell's supported platform archives
+- if the release exists but is missing one or more expected supported-platform assets, it rebuilds and republishes the version
 - if the release already has the full expected asset set, it exits before running the build matrix
 
 Current buildable shells:
@@ -171,6 +174,11 @@ Current buildable shells:
 - `bash`
   - builder: `scripts/build_bash_release.sh`
   - source tarball: `https://ftp.gnu.org/pub/gnu/bash/bash-<version>.tar.gz`
+- `busybox`
+  - builder: `scripts/build_busybox_release.sh`
+  - source tarball: `https://busybox.net/downloads/busybox-<version>.tar.bz2`
+  - runtime packaging: wraps the BusyBox binary so `bin/busybox` runs the bundled `sh` applet
+  - supported platforms: Linux only (`*-linux-gnu`, `*-linux-musl`)
 - `dash`
   - builder: `scripts/build_dash_release.sh`
   - source archive: `https://kernel.googlesource.com/pub/scm/utils/dash/dash/+archive/refs/tags/v<version>.tar.gz`
@@ -202,6 +210,7 @@ The workflow currently builds on these GitHub-hosted runner labels:
 The release tag format stays `<shell>-<version>`, so:
 
 - a Bash build for `5.2.21` publishes or updates `bash-5.2.21`
+- a BusyBox build for `1.37.0` publishes or updates `busybox-1.37.0`
 - a dash build for `0.5.13.2` publishes or updates `dash-0.5.13.2`
 - an mksh build for `R59c` publishes or updates `mksh-R59c`
 - a Zsh build for `5.9` publishes or updates `zsh-5.9`

@@ -8,6 +8,14 @@ from typing import Any
 
 DEFAULT_CATALOG_PATH = Path(__file__).resolve().parents[1] / "shells.json"
 SUPPORTED_SOURCE_KINDS = ("build", "github_release")
+SUPPORTED_PLATFORMS = (
+    "x86_64-linux-gnu",
+    "aarch64-linux-gnu",
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
+    "x86_64-darwin",
+    "aarch64-darwin",
+)
 
 
 class CatalogError(ValueError):
@@ -45,9 +53,22 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
 
         if source_kind == "build":
             builder = release_source.get("builder")
+            supported_platforms = release_source.get("supported_platforms")
             if not isinstance(builder, str) or not builder:
                 raise CatalogError(
                     f"shell catalog entry `{shell}` must define a builder for build sources"
+                )
+            if (
+                not isinstance(supported_platforms, list)
+                or not supported_platforms
+                or any(platform not in SUPPORTED_PLATFORMS for platform in supported_platforms)
+            ):
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define non-empty supported_platforms for build sources"
+                )
+            if supported_platforms != sorted(set(supported_platforms)):
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must keep supported_platforms sorted and unique"
                 )
         if source_kind == "github_release":
             repo = release_source.get("repo")
@@ -84,6 +105,10 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
                 if not isinstance(platform, str) or not platform:
                     raise CatalogError(
                         f"shell catalog entry `{shell}` has a github_release asset rule without a platform"
+                    )
+                if platform not in SUPPORTED_PLATFORMS:
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has unsupported github_release platform `{platform}`"
                     )
 
         upstream = metadata.get("upstream")
@@ -138,6 +163,17 @@ def build_script(shell: str) -> str:
             f"shell `{shell}` uses release source kind `{source_kind}` and is not buildable by this workflow"
         )
     return str(release_source["builder"])
+
+
+def shell_supported_platforms(shell: str) -> list[str]:
+    metadata = shell_metadata(shell)
+    release_source = metadata["release_source"]
+    source_kind = release_source["kind"]
+    if source_kind == "build":
+        return [str(platform) for platform in release_source["supported_platforms"]]
+    if source_kind == "github_release":
+        return sorted({str(asset_rule["platform"]) for asset_rule in release_source["assets"]})
+    raise CatalogError(f"unsupported release source kind `{source_kind}`")
 
 
 def github_release_repo(shell: str) -> str:
@@ -201,6 +237,7 @@ def parse_args() -> argparse.Namespace:
         "display-name",
         "source-kind",
         "build-script",
+        "supported-platforms",
         "github-release-repo",
         "github-release-tag-version-pattern",
         "upstream-discovery-urls",
@@ -224,6 +261,9 @@ def main() -> None:
             return
         if args.command == "build-script":
             print(build_script(args.shell))
+            return
+        if args.command == "supported-platforms":
+            print(json.dumps(shell_supported_platforms(args.shell), separators=(",", ":")))
             return
         if args.command == "github-release-repo":
             print(github_release_repo(args.shell))

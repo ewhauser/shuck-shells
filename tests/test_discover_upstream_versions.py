@@ -43,6 +43,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "release_source": {
                     "kind": "build",
                     "builder": "scripts/build_bash_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
                 },
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/bash"],
@@ -54,6 +55,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "release_source": {
                     "kind": "build",
                     "builder": "scripts/build_zsh_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
                 },
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/zsh"],
@@ -118,6 +120,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "release_source": {
                     "kind": "build",
                     "builder": "scripts/build_bash_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
                 },
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/bash"],
@@ -129,6 +132,7 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
                 "release_source": {
                     "kind": "build",
                     "builder": "scripts/build_zsh_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
                 },
                 "upstream": {
                     "discovery_urls": ["https://example.invalid/zsh"],

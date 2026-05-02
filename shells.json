@@ -3,7 +3,15 @@
     "display_name": "Bash",
     "release_source": {
       "kind": "build",
-      "builder": "scripts/build_bash_release.sh"
+      "builder": "scripts/build_bash_release.sh",
+      "supported_platforms": [
+        "aarch64-darwin",
+        "aarch64-linux-gnu",
+        "aarch64-linux-musl",
+        "x86_64-darwin",
+        "x86_64-linux-gnu",
+        "x86_64-linux-musl"
+      ]
     },
     "upstream": {
       "discovery_urls": [
@@ -38,11 +46,38 @@
       ]
     }
   },
+  "busybox": {
+    "display_name": "BusyBox",
+    "release_source": {
+      "kind": "build",
+      "builder": "scripts/build_busybox_release.sh",
+      "supported_platforms": [
+        "aarch64-linux-gnu",
+        "aarch64-linux-musl",
+        "x86_64-linux-gnu",
+        "x86_64-linux-musl"
+      ]
+    },
+    "upstream": {
+      "discovery_urls": [
+        "https://busybox.net/downloads/"
+      ],
+      "version_pattern": "busybox-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.bz2"
+    }
+  },
   "dash": {
     "display_name": "dash",
     "release_source": {
       "kind": "build",
-      "builder": "scripts/build_dash_release.sh"
+      "builder": "scripts/build_dash_release.sh",
+      "supported_platforms": [
+        "aarch64-darwin",
+        "aarch64-linux-gnu",
+        "aarch64-linux-musl",
+        "x86_64-darwin",
+        "x86_64-linux-gnu",
+        "x86_64-linux-musl"
+      ]
     },
     "upstream": {
       "discovery_urls": [
@@ -82,7 +117,15 @@
     "display_name": "mksh",
     "release_source": {
       "kind": "build",
-      "builder": "scripts/build_mksh_release.sh"
+      "builder": "scripts/build_mksh_release.sh",
+      "supported_platforms": [
+        "aarch64-darwin",
+        "aarch64-linux-gnu",
+        "aarch64-linux-musl",
+        "x86_64-darwin",
+        "x86_64-linux-gnu",
+        "x86_64-linux-musl"
+      ]
     },
     "upstream": {
       "discovery_urls": [
@@ -96,7 +139,15 @@
     "display_name": "Zsh",
     "release_source": {
       "kind": "build",
-      "builder": "scripts/build_zsh_release.sh"
+      "builder": "scripts/build_zsh_release.sh",
+      "supported_platforms": [
+        "aarch64-darwin",
+        "aarch64-linux-gnu",
+        "aarch64-linux-musl",
+        "x86_64-darwin",
+        "x86_64-linux-gnu",
+        "x86_64-linux-musl"
+      ]
     },
     "upstream": {
       "discovery_urls": [
