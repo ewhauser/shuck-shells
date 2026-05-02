@@ -26,6 +26,21 @@ echo "Downloading ${source_url}"
 curl -fsSL "$source_url" -o "$source_archive"
 tar -xJf "$source_archive" -C "$work_root"
 
+python3 - "$source_dir/Src/Modules/termcap.c" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+old = "static char *boolcodes[] = {"
+new = "NCURSES_CONST char *const boolcodes[] = {"
+if new not in text:
+    if old not in text:
+        raise SystemExit("zsh termcap.c patch anchor not found")
+    text = text.replace(old, new, 1)
+    path.write_text(text, encoding="utf-8")
+PY
+
 pushd "$source_dir" >/dev/null
 "$source_dir/configure" --prefix=/usr/local --with-tcsetpgrp
 if command -v getconf >/dev/null 2>&1; then
@@ -49,6 +64,47 @@ if [[ ! -f "$license_source" ]]; then
 fi
 cp "$license_source" "$archive_root/LICENSE"
 
+bootstrap_dir="$archive_root/lib/shuck-zsh-bootstrap"
+mkdir -p "$bootstrap_dir"
+cat >"$bootstrap_dir/.zshenv" <<'EOF'
+typeset -gaU module_path fpath
+
+for candidate in "$SHUCK_ZSH_ROOT"/lib/zsh/*; do
+  if [[ -d "$candidate" ]]; then
+    module_path=("$candidate" $module_path)
+    break
+  fi
+done
+
+for candidate in "$SHUCK_ZSH_ROOT"/share/zsh/*/functions; do
+  if [[ -d "$candidate" ]]; then
+    fpath=("$candidate" $fpath)
+    break
+  fi
+done
+
+if [[ -d "$SHUCK_ZSH_ROOT/share/zsh/site-functions" ]]; then
+  fpath=("$SHUCK_ZSH_ROOT/share/zsh/site-functions" $fpath)
+fi
+
+if [[ ${SHUCK_ZSH_USER_ZDOTDIR:-__unset__} != "__unset__" ]]; then
+  export ZDOTDIR="$SHUCK_ZSH_USER_ZDOTDIR"
+  user_zdotdir="$SHUCK_ZSH_USER_ZDOTDIR"
+else
+  unset ZDOTDIR
+  user_zdotdir="${SHUCK_ZSH_USER_HOME:-}"
+fi
+
+user_zshenv=""
+if [[ -n "$user_zdotdir" ]]; then
+  user_zshenv="$user_zdotdir/.zshenv"
+fi
+
+if [[ -n "$user_zshenv" && -r "$user_zshenv" && "$user_zshenv" != "${SHUCK_ZSH_BOOTSTRAP_ZSHENV:-}" ]]; then
+  source "$user_zshenv"
+fi
+EOF
+
 mv "$archive_root/bin/zsh" "$archive_root/bin/zsh.real"
 cat >"$archive_root/bin/zsh" <<'EOF'
 #!/bin/sh
@@ -56,44 +112,16 @@ set -eu
 
 self_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 root_dir=$(CDPATH= cd -- "$self_dir/.." && pwd)
-
-module_path_value=${MODULE_PATH:-}
-for candidate in "$root_dir"/lib/zsh/*; do
-  if [ -d "$candidate" ]; then
-    if [ -n "$module_path_value" ]; then
-      module_path_value="$candidate:$module_path_value"
-    else
-      module_path_value="$candidate"
-    fi
-    break
-  fi
-done
-if [ -n "$module_path_value" ]; then
-  export MODULE_PATH="$module_path_value"
+bootstrap_dir="$root_dir/lib/shuck-zsh-bootstrap"
+if [ "${ZDOTDIR+x}" = "x" ]; then
+  export SHUCK_ZSH_USER_ZDOTDIR="$ZDOTDIR"
+else
+  export SHUCK_ZSH_USER_ZDOTDIR="__unset__"
 fi
-
-fpath_value=${FPATH:-}
-for candidate in "$root_dir"/share/zsh/*/functions; do
-  if [ -d "$candidate" ]; then
-    if [ -n "$fpath_value" ]; then
-      fpath_value="$candidate:$fpath_value"
-    else
-      fpath_value="$candidate"
-    fi
-    break
-  fi
-done
-if [ -d "$root_dir/share/zsh/site-functions" ]; then
-  if [ -n "$fpath_value" ]; then
-    fpath_value="$root_dir/share/zsh/site-functions:$fpath_value"
-  else
-    fpath_value="$root_dir/share/zsh/site-functions"
-  fi
-fi
-if [ -n "$fpath_value" ]; then
-  export FPATH="$fpath_value"
-fi
-
+export SHUCK_ZSH_USER_HOME="${HOME:-}"
+export SHUCK_ZSH_ROOT="$root_dir"
+export SHUCK_ZSH_BOOTSTRAP_ZSHENV="$bootstrap_dir/.zshenv"
+export ZDOTDIR="$bootstrap_dir"
 exec "$self_dir/zsh.real" "$@"
 EOF
 chmod 755 "$archive_root/bin/zsh" "$archive_root/bin/zsh.real"
@@ -107,8 +135,8 @@ case "$actual_version" in
     ;;
 esac
 
-"$archive_root/bin/zsh" -fc 'zmodload zsh/zutil'
-"$archive_root/bin/zsh" -fc 'autoload -Uz add-zsh-hook; add-zsh-hook -L >/dev/null'
+"$archive_root/bin/zsh" -c 'zmodload zsh/zutil'
+"$archive_root/bin/zsh" -c 'autoload -Uz add-zsh-hook; add-zsh-hook -L >/dev/null'
 
 tar -czf "${output_dir}/${archive_name}" -C "$work_root" "$(basename "$archive_root")"
 tar -tzf "${output_dir}/${archive_name}" >/dev/null
