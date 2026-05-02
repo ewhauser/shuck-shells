@@ -46,8 +46,18 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SHUCK_SHELLS_APP_ID }}
+          private-key: ${{ secrets.SHUCK_SHELLS_APP_PRIVATE_KEY }}
+
+      - name: Verify GitHub App installation
+        run: test "${{ steps.app-token.outputs.installation-id }}" = "${{ secrets.SHUCK_SHELLS_APP_INSTALLATION_ID }}"
+
       - name: Enable auto-merge for generated PR
         env:
-          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_BOT_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"

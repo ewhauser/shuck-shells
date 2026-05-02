@@ -14,15 +14,43 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
-bot_token="${SHUCK_SHELLS_BOT_TOKEN:-}"
-if [[ -z "$bot_token" ]]; then
-  if [[ -t 0 ]]; then
-    read -r -s -p "Enter SHUCK_SHELLS_BOT_TOKEN: " bot_token
-    echo
+app_id="${SHUCK_SHELLS_APP_ID:-}"
+installation_id="${SHUCK_SHELLS_APP_INSTALLATION_ID:-}"
+app_private_key="${SHUCK_SHELLS_APP_PRIVATE_KEY:-}"
+
+if [[ -z "$app_id" && -t 0 ]]; then
+  read -r -p "Enter SHUCK_SHELLS_APP_ID: " app_id
+fi
+
+if [[ -z "$installation_id" && -t 0 ]]; then
+  read -r -p "Enter SHUCK_SHELLS_APP_INSTALLATION_ID: " installation_id
+fi
+
+if [[ -z "$app_private_key" && -t 0 ]]; then
+  echo "Paste SHUCK_SHELLS_APP_PRIVATE_KEY, then enter a line containing only EOF:"
+  private_key_lines=()
+  while IFS= read -r line; do
+    [[ "$line" == "EOF" ]] && break
+    private_key_lines+=("$line")
+  done
+  if ((${#private_key_lines[@]} > 0)); then
+    app_private_key="$(printf '%s\n' "${private_key_lines[@]}")"
+    app_private_key="${app_private_key%$'\n'}"
   fi
 fi
-if [[ -z "$bot_token" ]]; then
-  echo "error: SHUCK_SHELLS_BOT_TOKEN is not set" >&2
+
+if [[ -z "$app_id" ]]; then
+  echo "error: SHUCK_SHELLS_APP_ID is not set" >&2
+  exit 1
+fi
+
+if [[ -z "$installation_id" ]]; then
+  echo "error: SHUCK_SHELLS_APP_INSTALLATION_ID is not set" >&2
+  exit 1
+fi
+
+if [[ -z "$app_private_key" ]]; then
+  echo "error: SHUCK_SHELLS_APP_PRIVATE_KEY is not set" >&2
   exit 1
 fi
 
@@ -61,9 +89,17 @@ if [[ $pages_status -ne 0 ]]; then
 fi
 
 echo "Uploading repo secrets..."
-gh secret set SHUCK_SHELLS_BOT_TOKEN \
+gh secret set SHUCK_SHELLS_APP_ID \
   --repo "$repo" \
-  --body "$bot_token"
+  --body "$app_id"
+
+gh secret set SHUCK_SHELLS_APP_INSTALLATION_ID \
+  --repo "$repo" \
+  --body "$installation_id"
+
+gh secret set SHUCK_SHELLS_APP_PRIVATE_KEY \
+  --repo "$repo" \
+  --body "$app_private_key"
 
 echo "Applying branch protection to main..."
 gh api \

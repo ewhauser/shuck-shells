@@ -87,10 +87,17 @@ The published endpoint for v1 is:
 
 - `https://<owner>.github.io/shuck-shells/index.json`
 
-## Required secret
+## Required secrets
 
-The automation uses one GitHub identity stored as:
+The automation uses one GitHub App installation with these repository secrets:
 
-- `SHUCK_SHELLS_BOT_TOKEN`
+- `SHUCK_SHELLS_APP_ID`
+- `SHUCK_SHELLS_APP_INSTALLATION_ID`
+- `SHUCK_SHELLS_APP_PRIVATE_KEY`
 
-This one-identity setup intentionally does not require PR approvals on `main`. The nightly workflow opens or updates the refresh PR, and the validation workflow enables auto-merge after the required checks pass.
+The workflows mint a short-lived installation token at runtime from those values. This setup intentionally does not require PR approvals on `main`. The nightly workflow opens or updates the refresh PR, and the validation workflow enables auto-merge after the required checks pass.
+
+The app only needs repository access to `shuck-shells` with:
+
+- `Contents: Read & write`
+- `Pull requests: Read & write`
