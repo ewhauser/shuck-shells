@@ -40,6 +40,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'bot/refresh-index'
     needs: validate
     runs-on: ubuntu-latest
+    environment: merge-generated-pr
     timeout-minutes: 10
     permissions:
       contents: write
