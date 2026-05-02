@@ -12,6 +12,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from shell_catalog import (  # noqa: E402
     build_script,
+    github_release_asset_rules,
+    github_release_repo,
+    github_release_tag_version_pattern,
     load_shell_catalog,
     release_source_kind,
     shell_display_name,
@@ -21,7 +24,10 @@ from shell_catalog import (  # noqa: E402
 class ShellCatalogTest(unittest.TestCase):
     def test_catalog_keys_are_sorted_and_contains_expected_shells(self) -> None:
         catalog = load_shell_catalog()
-        self.assertEqual(list(catalog.keys()), ["bash", "dash", "mksh", "zsh"])
+        self.assertEqual(
+            list(catalog.keys()),
+            ["bash", "bashkit", "dash", "gbash", "mksh", "zsh"],
+        )
 
     def test_buildable_shells_have_build_scripts(self) -> None:
         self.assertEqual(build_script("bash"), "scripts/build_bash_release.sh")
@@ -37,7 +43,17 @@ class ShellCatalogTest(unittest.TestCase):
                     {
                         "testsh": {
                             "display_name": "testsh",
-                            "release_source": {"kind": "github_release"},
+                            "release_source": {
+                                "kind": "github_release",
+                                "repo": "owner/testsh",
+                                "tag_version_pattern": "^v(?P<version>.+)$",
+                                "assets": [
+                                    {
+                                        "pattern": "^testsh-(?P<version>.+)-linux-amd64\\.tar\\.gz$",
+                                        "platform": "x86_64-linux-gnu",
+                                    }
+                                ],
+                            },
                         }
                     }
                 ),
@@ -57,9 +73,44 @@ class ShellCatalogTest(unittest.TestCase):
 
     def test_shell_display_name(self) -> None:
         self.assertEqual(shell_display_name("bash"), "Bash")
+        self.assertEqual(shell_display_name("bashkit"), "bashkit")
         self.assertEqual(shell_display_name("dash"), "dash")
+        self.assertEqual(shell_display_name("gbash"), "gbash")
         self.assertEqual(shell_display_name("mksh"), "mksh")
         self.assertEqual(shell_display_name("zsh"), "Zsh")
+
+    def test_github_release_metadata(self) -> None:
+        self.assertEqual(github_release_repo("bashkit"), "everruns/bashkit")
+        self.assertEqual(
+            github_release_tag_version_pattern("bashkit"),
+            "^v(?P<version>[0-9]+(?:\\.[0-9]+)*)$",
+        )
+        self.assertEqual(github_release_repo("gbash"), "ewhauser/gbash")
+        self.assertEqual(
+            github_release_tag_version_pattern("gbash"),
+            "^v(?P<version>[0-9]+(?:\\.[0-9]+)*)$",
+        )
+        self.assertEqual(
+            github_release_asset_rules("bashkit"),
+            [
+                {
+                    "pattern": "^bashkit-x86_64-unknown-linux-gnu\\.tar\\.gz$",
+                    "platform": "x86_64-linux-gnu",
+                },
+                {
+                    "pattern": "^bashkit-aarch64-unknown-linux-gnu\\.tar\\.gz$",
+                    "platform": "aarch64-linux-gnu",
+                },
+                {
+                    "pattern": "^bashkit-x86_64-apple-darwin\\.tar\\.gz$",
+                    "platform": "x86_64-darwin",
+                },
+                {
+                    "pattern": "^bashkit-aarch64-apple-darwin\\.tar\\.gz$",
+                    "platform": "aarch64-darwin",
+                },
+            ],
+        )
 
     def test_cli_lists_buildable_shells(self) -> None:
         repo_root = Path(__file__).resolve().parents[1]

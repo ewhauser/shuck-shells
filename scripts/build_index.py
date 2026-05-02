@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import urllib.request
 
 from index_lib import (
@@ -16,6 +17,13 @@ from index_lib import (
     parse_asset_filename,
     parse_release_tag,
     write_registry_documents,
+)
+from shell_catalog import (
+    github_release_asset_rules,
+    github_release_repo,
+    github_release_tag_version_pattern,
+    load_shell_catalog,
+    release_source_kind,
 )
 
 
@@ -57,11 +65,24 @@ def fetch_asset_bytes(url: str) -> bytes:
         return response.read()
 
 
-def build_registry(releases: list[dict], asset_fetcher=fetch_asset_bytes) -> dict:
-    shells: dict[str, dict[str, dict[str, dict[str, str]]]] = defaultdict(
-        lambda: defaultdict(dict)
-    )
+def asset_sha256(asset: dict, asset_fetcher=fetch_asset_bytes) -> str:
+    digest = asset.get("digest")
+    if isinstance(digest, str):
+        match = re.fullmatch(r"sha256:([0-9a-f]{64})", digest)
+        if match:
+            return match.group(1)
 
+    asset_url = asset.get("browser_download_url")
+    if not isinstance(asset_url, str):
+        raise IndexError("release asset is missing `browser_download_url`")
+    return hashlib.sha256(asset_fetcher(asset_url)).hexdigest()
+
+
+def ingest_build_releases(
+    shells: dict[str, dict[str, dict[str, dict[str, str]]]],
+    releases: list[dict],
+    asset_fetcher=fetch_asset_bytes,
+) -> None:
     for release in releases:
         if not isinstance(release, dict):
             raise IndexError("release entries must be objects")
@@ -96,8 +117,107 @@ def build_registry(releases: list[dict], asset_fetcher=fetch_asset_bytes) -> dic
                     f"duplicate archive for {shell} {version} on {platform}: `{asset_name}`"
                 )
 
-            sha256 = hashlib.sha256(asset_fetcher(asset_url)).hexdigest()
+            sha256 = asset_sha256(asset, asset_fetcher=asset_fetcher)
             shells[shell][version][platform] = {"url": asset_url, "sha256": sha256}
+
+
+def ingest_github_release_sources(
+    shells: dict[str, dict[str, dict[str, dict[str, str]]]],
+    releases_by_repo: dict[str, list[dict]],
+    asset_fetcher=fetch_asset_bytes,
+) -> None:
+    catalog = load_shell_catalog()
+    for shell in catalog:
+        if release_source_kind(shell) != "github_release":
+            continue
+
+        repo = github_release_repo(shell)
+        tag_pattern = re.compile(github_release_tag_version_pattern(shell))
+        asset_rules = [
+            (re.compile(rule["pattern"]), rule["platform"])
+            for rule in github_release_asset_rules(shell)
+        ]
+        try:
+            releases = releases_by_repo[repo]
+        except KeyError as exc:
+            raise IndexError(
+                f"missing releases payload for github_release source repo `{repo}`"
+            ) from exc
+
+        for release in releases:
+            if not isinstance(release, dict):
+                raise IndexError(f"release entries for `{repo}` must be objects")
+            if release.get("draft") or release.get("prerelease"):
+                continue
+            tag_name = release.get("tag_name")
+            if not isinstance(tag_name, str):
+                raise IndexError(f"release in `{repo}` is missing `tag_name`")
+            tag_match = tag_pattern.fullmatch(tag_name)
+            if tag_match is None:
+                continue
+            version = tag_match.groupdict().get("version")
+            if not version:
+                raise IndexError(
+                    f"github_release shell `{shell}` tag pattern must capture a `version` group"
+                )
+
+            assets = release.get("assets", [])
+            if not isinstance(assets, list):
+                raise IndexError(f"release `{tag_name}` in `{repo}` has a non-list `assets` field")
+
+            for asset in assets:
+                if not isinstance(asset, dict):
+                    raise IndexError(
+                        f"release `{tag_name}` in `{repo}` has a non-object asset entry"
+                    )
+                asset_name = asset.get("name")
+                asset_url = asset.get("browser_download_url")
+                if not isinstance(asset_name, str) or not isinstance(asset_url, str):
+                    raise IndexError(f"release `{tag_name}` in `{repo}` has an invalid asset entry")
+
+                matched_platform = None
+                for asset_pattern, platform in asset_rules:
+                    asset_match = asset_pattern.fullmatch(asset_name)
+                    if asset_match is None:
+                        continue
+                    asset_version = asset_match.groupdict().get("version")
+                    if asset_version is not None and asset_version != version:
+                        raise IndexError(
+                            f"asset `{asset_name}` in `{repo}` does not match release version `{version}`"
+                        )
+                    matched_platform = platform
+                    break
+
+                if matched_platform is None:
+                    continue
+                if matched_platform in shells[shell][version]:
+                    raise IndexError(
+                        f"duplicate archive for {shell} {version} on {matched_platform}: `{asset_name}`"
+                    )
+
+                sha256 = asset_sha256(asset, asset_fetcher=asset_fetcher)
+                shells[shell][version][matched_platform] = {
+                    "url": asset_url,
+                    "sha256": sha256,
+                }
+
+
+def build_registry(
+    releases: list[dict],
+    github_release_releases_by_repo: dict[str, list[dict]] | None = None,
+    asset_fetcher=fetch_asset_bytes,
+) -> dict:
+    shells: dict[str, dict[str, dict[str, dict[str, str]]]] = defaultdict(
+        lambda: defaultdict(dict)
+    )
+
+    ingest_build_releases(shells, releases, asset_fetcher=asset_fetcher)
+    if github_release_releases_by_repo is not None:
+        ingest_github_release_sources(
+            shells,
+            github_release_releases_by_repo,
+            asset_fetcher=asset_fetcher,
+        )
 
     inventory = {
         shell: {
@@ -134,14 +254,25 @@ def main() -> None:
     if args.releases_file:
         with open(args.releases_file, "r", encoding="utf-8") as handle:
             releases = json.load(handle)
+        github_release_releases_by_repo: dict[str, list[dict]] | None = None
     else:
         if not args.repo:
             raise SystemExit("missing --repo and GITHUB_REPOSITORY is not set")
         releases = iter_releases(args.repo)
+        github_release_releases_by_repo = {}
+        for shell, metadata in load_shell_catalog().items():
+            if release_source_kind(shell) != "github_release":
+                continue
+            repo = str(metadata["release_source"]["repo"])
+            if repo not in github_release_releases_by_repo:
+                github_release_releases_by_repo[repo] = iter_releases(repo)
     if not isinstance(releases, list):
         raise SystemExit("release payload must be a JSON array")
 
-    documents = build_registry(releases)
+    documents = build_registry(
+        releases,
+        github_release_releases_by_repo=github_release_releases_by_repo,
+    )
     output_dir = Path(args.output_dir)
     output_dir.parent.mkdir(parents=True, exist_ok=True)
     write_registry_documents(output_dir, documents)

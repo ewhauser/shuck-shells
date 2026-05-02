@@ -12,6 +12,32 @@
       "version_pattern": "bash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
     }
   },
+  "bashkit": {
+    "display_name": "bashkit",
+    "release_source": {
+      "kind": "github_release",
+      "repo": "everruns/bashkit",
+      "tag_version_pattern": "^v(?P<version>[0-9]+(?:\\.[0-9]+)*)$",
+      "assets": [
+        {
+          "pattern": "^bashkit-x86_64-unknown-linux-gnu\\.tar\\.gz$",
+          "platform": "x86_64-linux-gnu"
+        },
+        {
+          "pattern": "^bashkit-aarch64-unknown-linux-gnu\\.tar\\.gz$",
+          "platform": "aarch64-linux-gnu"
+        },
+        {
+          "pattern": "^bashkit-x86_64-apple-darwin\\.tar\\.gz$",
+          "platform": "x86_64-darwin"
+        },
+        {
+          "pattern": "^bashkit-aarch64-apple-darwin\\.tar\\.gz$",
+          "platform": "aarch64-darwin"
+        }
+      ]
+    }
+  },
   "dash": {
     "display_name": "dash",
     "release_source": {
@@ -24,6 +50,32 @@
         "https://gondor.apana.org.au/~herbert/dash/files/"
       ],
       "version_pattern": "dash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
+    }
+  },
+  "gbash": {
+    "display_name": "gbash",
+    "release_source": {
+      "kind": "github_release",
+      "repo": "ewhauser/gbash",
+      "tag_version_pattern": "^v(?P<version>[0-9]+(?:\\.[0-9]+)*)$",
+      "assets": [
+        {
+          "pattern": "^gbash_(?P<version>[0-9]+(?:\\.[0-9]+)*)_linux_amd64\\.tar\\.gz$",
+          "platform": "x86_64-linux-gnu"
+        },
+        {
+          "pattern": "^gbash_(?P<version>[0-9]+(?:\\.[0-9]+)*)_linux_arm64\\.tar\\.gz$",
+          "platform": "aarch64-linux-gnu"
+        },
+        {
+          "pattern": "^gbash_(?P<version>[0-9]+(?:\\.[0-9]+)*)_darwin_amd64\\.tar\\.gz$",
+          "platform": "x86_64-darwin"
+        },
+        {
+          "pattern": "^gbash_(?P<version>[0-9]+(?:\\.[0-9]+)*)_darwin_arm64\\.tar\\.gz$",
+          "platform": "aarch64-darwin"
+        }
+      ]
     }
   },
   "mksh": {

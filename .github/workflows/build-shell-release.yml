@@ -22,7 +22,97 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      skip_build: ${{ steps.check-release.outputs.skip_build }}
+      release_exists: ${{ steps.check-release.outputs.release_exists }}
+      missing_assets: ${{ steps.check-release.outputs.missing_assets }}
+    steps:
+      - name: Check existing release assets
+        id: check-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.shell }}-${{ inputs.version }}
+          SHELL_NAME: ${{ inputs.shell }}
+          SHELL_VERSION: ${{ inputs.version }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          expected_platforms = [
+              "x86_64-linux-gnu",
+              "aarch64-linux-gnu",
+              "x86_64-linux-musl",
+              "aarch64-linux-musl",
+              "x86_64-darwin",
+              "aarch64-darwin",
+          ]
+          shell_name = os.environ["SHELL_NAME"]
+          shell_version = os.environ["SHELL_VERSION"]
+          release_tag = os.environ["RELEASE_TAG"]
+          expected_assets = [
+              f"{shell_name}-{shell_version}-{platform}.tar.gz"
+              for platform in expected_platforms
+          ]
+
+          release = subprocess.run(
+              [
+                  "gh",
+                  "api",
+                  f"repos/{os.environ['REPO']}/releases/tags/{release_tag}",
+              ],
+              check=False,
+              capture_output=True,
+              text=True,
+          )
+
+          release_exists = release.returncode == 0
+          skip_build = False
+          missing_assets = expected_assets
+
+          if release_exists:
+              payload = json.loads(release.stdout)
+              existing_assets = {
+                  asset["name"]
+                  for asset in payload.get("assets", [])
+              }
+              missing_assets = [
+                  asset for asset in expected_assets if asset not in existing_assets
+              ]
+              skip_build = not missing_assets
+
+          github_output = os.environ["GITHUB_OUTPUT"]
+          with open(github_output, "a", encoding="utf-8") as handle:
+              handle.write(
+                  f"release_exists={'true' if release_exists else 'false'}\n"
+              )
+              handle.write(
+                  f"skip_build={'true' if skip_build else 'false'}\n"
+              )
+              handle.write(
+                  f"missing_assets={json.dumps(missing_assets, separators=(',', ':'))}\n"
+              )
+
+          if skip_build:
+              print(
+                  f"Release {release_tag} already has all expected assets; skipping build."
+              )
+          elif release_exists:
+              print(
+                  f"Release {release_tag} exists but is missing assets: {', '.join(missing_assets)}"
+              )
+          else:
+              print(f"Release {release_tag} does not exist yet; building all assets.")
+          PY
+
   build-linux-gnu:
+    needs: preflight
+    if: needs.preflight.outputs.skip_build != 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
@@ -50,6 +140,8 @@ jobs:
           if-no-files-found: error
 
   build-linux-musl:
+    needs: preflight
+    if: needs.preflight.outputs.skip_build != 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
@@ -84,6 +176,8 @@ jobs:
           if-no-files-found: error
 
   build-darwin:
+    needs: preflight
+    if: needs.preflight.outputs.skip_build != 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
@@ -115,6 +209,8 @@ jobs:
       - build-linux-gnu
       - build-linux-musl
       - build-darwin
+      - preflight
+    if: needs.preflight.outputs.skip_build != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

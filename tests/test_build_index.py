@@ -165,6 +165,101 @@ class BuildIndexTest(unittest.TestCase):
         documents = build_registry(releases, asset_fetcher=lambda _: b"ignored")
         self.assertEqual(documents["index.json"]["shells"], {})
 
+    def test_build_registry_includes_github_release_shells(self) -> None:
+        build_releases = []
+        github_release_releases_by_repo = {
+            "everruns/bashkit": [
+                {
+                    "tag_name": "v0.2.1",
+                    "draft": False,
+                    "prerelease": False,
+                    "assets": [
+                        {
+                            "name": "bashkit-x86_64-unknown-linux-gnu.tar.gz",
+                            "browser_download_url": "https://example.invalid/bashkit-x86_64-unknown-linux-gnu.tar.gz",
+                            "digest": "sha256:" + ("a" * 64),
+                        },
+                        {
+                            "name": "bashkit-aarch64-apple-darwin.tar.gz",
+                            "browser_download_url": "https://example.invalid/bashkit-aarch64-apple-darwin.tar.gz",
+                            "digest": "sha256:" + ("b" * 64),
+                        },
+                    ],
+                }
+            ],
+            "ewhauser/gbash": [
+                {
+                    "tag_name": "v0.0.37",
+                    "draft": False,
+                    "prerelease": False,
+                    "assets": [
+                        {
+                            "name": "gbash_0.0.37_linux_amd64.tar.gz",
+                            "browser_download_url": "https://example.invalid/gbash_0.0.37_linux_amd64.tar.gz",
+                            "digest": "sha256:" + ("c" * 64),
+                        },
+                        {
+                            "name": "gbash_0.0.37_darwin_arm64.tar.gz",
+                            "browser_download_url": "https://example.invalid/gbash_0.0.37_darwin_arm64.tar.gz",
+                            "digest": "sha256:" + ("d" * 64),
+                        },
+                        {
+                            "name": "gbash-extras_0.0.37_linux_amd64.tar.gz",
+                            "browser_download_url": "https://example.invalid/gbash-extras_0.0.37_linux_amd64.tar.gz",
+                            "digest": "sha256:" + ("e" * 64),
+                        },
+                    ],
+                }
+            ],
+        }
+
+        documents = build_registry(
+            build_releases,
+            github_release_releases_by_repo=github_release_releases_by_repo,
+            asset_fetcher=lambda _: self.fail("asset fetch should not be used when digest is present"),
+        )
+
+        self.assertEqual(
+            list(documents["index.json"]["shells"].keys()),
+            ["bashkit", "gbash"],
+        )
+        self.assertEqual(
+            documents["shells/bashkit/0.2.1.json"]["platforms"]["x86_64-linux-gnu"]["sha256"],
+            "a" * 64,
+        )
+        self.assertEqual(
+            documents["shells/gbash/0.0.37.json"]["platforms"]["aarch64-darwin"]["sha256"],
+            "d" * 64,
+        )
+        self.assertNotIn(
+            "x86_64-linux-musl",
+            documents["shells/gbash/0.0.37.json"]["platforms"],
+        )
+
+    def test_build_registry_rejects_github_release_asset_version_mismatch(self) -> None:
+        with self.assertRaisesRegex(IndexError, "does not match release version"):
+            build_registry(
+                [],
+                github_release_releases_by_repo={
+                    "everruns/bashkit": [],
+                    "ewhauser/gbash": [
+                        {
+                            "tag_name": "v0.0.37",
+                            "draft": False,
+                            "prerelease": False,
+                            "assets": [
+                                {
+                                    "name": "gbash_0.0.36_linux_amd64.tar.gz",
+                                    "browser_download_url": "https://example.invalid/gbash_0.0.36_linux_amd64.tar.gz",
+                                    "digest": "sha256:" + ("f" * 64),
+                                }
+                            ],
+                        }
+                    ],
+                },
+                asset_fetcher=lambda _: b"ignored",
+            )
+
     def test_build_registry_cli_writes_site_from_releases_file(self) -> None:
         repo_root = Path(__file__).resolve().parents[1]
         script_path = repo_root / "scripts" / "build_index.py"

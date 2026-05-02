@@ -49,6 +49,42 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
                 raise CatalogError(
                     f"shell catalog entry `{shell}` must define a builder for build sources"
                 )
+        if source_kind == "github_release":
+            repo = release_source.get("repo")
+            tag_version_pattern = release_source.get("tag_version_pattern")
+            assets = release_source.get("assets")
+            if (
+                not isinstance(repo, str)
+                or "/" not in repo
+                or repo.startswith("/")
+                or repo.endswith("/")
+            ):
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define a GitHub owner/name repo for github_release sources"
+                )
+            if not isinstance(tag_version_pattern, str) or not tag_version_pattern:
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define a tag_version_pattern for github_release sources"
+                )
+            if not isinstance(assets, list) or not assets:
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define non-empty asset rules for github_release sources"
+                )
+            for asset_rule in assets:
+                if not isinstance(asset_rule, dict):
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has a non-object github_release asset rule"
+                    )
+                pattern = asset_rule.get("pattern")
+                platform = asset_rule.get("platform")
+                if not isinstance(pattern, str) or not pattern:
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has a github_release asset rule without a pattern"
+                    )
+                if not isinstance(platform, str) or not platform:
+                    raise CatalogError(
+                        f"shell catalog entry `{shell}` has a github_release asset rule without a platform"
+                    )
 
         upstream = metadata.get("upstream")
         if source_kind == "build":
@@ -104,6 +140,47 @@ def build_script(shell: str) -> str:
     return str(release_source["builder"])
 
 
+def github_release_repo(shell: str) -> str:
+    metadata = shell_metadata(shell)
+    release_source = metadata["release_source"]
+    source_kind = release_source["kind"]
+    if source_kind != "github_release":
+        raise CatalogError(
+            f"shell `{shell}` uses release source kind `{source_kind}` and is not sourced from GitHub releases"
+        )
+    return str(release_source["repo"])
+
+
+def github_release_tag_version_pattern(shell: str) -> str:
+    metadata = shell_metadata(shell)
+    release_source = metadata["release_source"]
+    source_kind = release_source["kind"]
+    if source_kind != "github_release":
+        raise CatalogError(
+            f"shell `{shell}` uses release source kind `{source_kind}` and is not sourced from GitHub releases"
+        )
+    return str(release_source["tag_version_pattern"])
+
+
+def github_release_asset_rules(shell: str) -> list[dict[str, str]]:
+    metadata = shell_metadata(shell)
+    release_source = metadata["release_source"]
+    source_kind = release_source["kind"]
+    if source_kind != "github_release":
+        raise CatalogError(
+            f"shell `{shell}` uses release source kind `{source_kind}` and is not sourced from GitHub releases"
+        )
+    asset_rules = []
+    for asset_rule in release_source["assets"]:
+        asset_rules.append(
+            {
+                "pattern": str(asset_rule["pattern"]),
+                "platform": str(asset_rule["platform"]),
+            }
+        )
+    return asset_rules
+
+
 def upstream_discovery_urls(shell: str) -> list[str]:
     metadata = shell_metadata(shell)
     upstream = metadata["upstream"]
@@ -124,6 +201,8 @@ def parse_args() -> argparse.Namespace:
         "display-name",
         "source-kind",
         "build-script",
+        "github-release-repo",
+        "github-release-tag-version-pattern",
         "upstream-discovery-urls",
         "upstream-version-pattern",
     ):
@@ -145,6 +224,12 @@ def main() -> None:
             return
         if args.command == "build-script":
             print(build_script(args.shell))
+            return
+        if args.command == "github-release-repo":
+            print(github_release_repo(args.shell))
+            return
+        if args.command == "github-release-tag-version-pattern":
+            print(github_release_tag_version_pattern(args.shell))
             return
         if args.command == "upstream-discovery-urls":
             for discovery_url in upstream_discovery_urls(args.shell):

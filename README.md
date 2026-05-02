@@ -13,7 +13,10 @@ It owns:
 
 ## Release conventions
 
-Releases are discovered from this repo's GitHub releases.
+Releases are discovered from:
+
+- this repo's GitHub releases for shells built by `shuck-shells`
+- configured external GitHub releases for shells sourced from other repos
 
 - release tag: `<shell>-<version>`
 - archive asset: `<shell>-<version>-<platform>.tar.gz`
@@ -27,8 +30,10 @@ Examples:
 Supported shells:
 
 - `bash`
+- `bashkit`
 - `zsh`
 - `dash`
+- `gbash`
 - `mksh`
 
 Supported platforms:
@@ -126,16 +131,22 @@ Each shell entry declares:
 - a display name
 - a `release_source.kind`
 - for buildable shells, the builder script used by the release workflow
+- for GitHub-release shells, the upstream repo plus tag and asset matching rules
 - upstream discovery metadata for automatic version detection
 
-Today, all cataloged shells are `build` shells:
+Current release sources:
 
+Build-from-source shells:
 - `bash`
 - `dash`
 - `mksh`
 - `zsh`
 
-The catalog still preserves the source-kind seam, so later shells can come from a different source path without changing the registry model.
+GitHub-release shells:
+- `bashkit` from `everruns/bashkit`
+- `gbash` from `ewhauser/gbash`
+
+The catalog drives both paths, so the registry can mix repo-built shells with externally released shells without changing the published JSON format.
 
 ## Building shell archives
 
@@ -148,6 +159,12 @@ The catalog still preserves the source-kind seam, so later shells can come from 
   - `version`
 
 The workflow only builds shells whose `release_source.kind` is `build`. If a later shell is cataloged under another source kind, the workflow fails fast instead of pretending to support it.
+
+The workflow also performs a release preflight check before starting the matrix:
+
+- if the `<shell>-<version>` release does not exist yet, it builds all six platform archives
+- if the release exists but is missing one or more expected assets, it rebuilds and republishes the version
+- if the release already has the full expected asset set, it exits before running the build matrix
 
 Current buildable shells:
 
@@ -193,11 +210,30 @@ The Linux matrix intentionally splits glibc and musl:
 - `*-linux-gnu` archives are built natively on Ubuntu 22.04 runners, so their runtime compatibility follows that glibc baseline.
 - `*-linux-musl` archives are built inside Alpine and target musl-based systems.
 
+## External GitHub releases
+
+Some shells are indexed directly from their own GitHub releases instead of being built in this repo.
+
+Current GitHub-release shells:
+
+- `bashkit`
+  - repo: `everruns/bashkit`
+  - tag format: `v<version>`
+  - indexed assets: Darwin tarballs plus Linux GNU tarballs when present
+- `gbash`
+  - repo: `ewhauser/gbash`
+  - tag format: `v<version>`
+  - indexed assets: `gbash_<version>_{linux,darwin}_{amd64,arm64}.tar.gz`
+  - ignored assets: `gbash-extras_*`, Windows archives, and other non-runtime side assets
+
+These shells are pulled in by the registry refresh job. They are not built or republished by `shuck-shells`.
+
 ## Automation
 
 - `refresh-index.yml` regenerates the checked-in registry tree nightly and opens or updates a PR if it changes.
 - `discover-upstream.yml` checks upstream release pages nightly and dispatches `build-shell-release.yml` for any missing latest shell releases.
 - `refresh-index.yml` also runs automatically when a new shell release is published.
+- `refresh-index.yml` also fetches configured external GitHub-release shells during its nightly regeneration pass.
 - `validate.yml` validates the JSON schema, canonical ordering, and script tests on PRs and `main`.
 - `publish-pages.yml` publishes the merged `registry/` tree to GitHub Pages.
 
