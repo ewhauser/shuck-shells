@@ -60,9 +60,9 @@
     },
     "upstream": {
       "discovery_urls": [
-        "https://busybox.net/downloads/"
+        "https://raw.githubusercontent.com/docker-library/official-images/master/library/busybox"
       ],
-      "version_pattern": "busybox-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.bz2"
+      "version_pattern": "Tags:\\s*([0-9]+(?:\\.[0-9]+)*)-glibc(?:,|\\s)"
     }
   },
   "dash": {

@@ -16,7 +16,7 @@ Every release archive is attached to a GitHub release in this repo (or, for exte
 | Shell     | Source                                        |
 | --------- | --------------------------------------------- |
 | `bash`    | built here from GNU upstream                  |
-| `busybox` | built here from busybox.net upstream (Linux)  |
+| `busybox` | repackaged here from Docker BusyBox rootfs (Linux) |
 | `dash`    | built here from kernel.org upstream           |
 | `mksh`    | built here from MirBSD upstream               |
 | `zsh`     | built here from sourceforge upstream          |
@@ -32,7 +32,7 @@ Every release archive is attached to a GitHub release in this repo (or, for exte
 - `x86_64-darwin`
 - `aarch64-darwin`
 
-`busybox` is Linux only. `*-linux-gnu` archives are built on Ubuntu 22.04 (glibc baseline); `*-linux-musl` archives are built inside Alpine.
+`busybox` is Linux only. `*-linux-gnu` archives are produced from Docker BusyBox glibc rootfs tarballs, and `*-linux-musl` archives are produced from Docker BusyBox musl rootfs tarballs.
 
 ## Release and asset naming
 

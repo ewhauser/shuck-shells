@@ -47,14 +47,14 @@ Each shell entry declares:
 
 Current release sources:
 
-- build-from-source: `bash`, `busybox`, `dash`, `mksh`, `zsh`
+- repo-produced archives: `bash`, `busybox`, `dash`, `mksh`, `zsh`
 - GitHub releases: `bashkit` (`everruns/bashkit`), `gbash` (`ewhauser/gbash`)
 
 The catalog drives both paths, so the registry can mix repo-built shells with externally released shells without changing the published JSON format.
 
 ## Building shell archives
 
-`shuck-shells` builds and publishes `bash`, `busybox`, `dash`, `mksh`, and `zsh` archives itself from upstream source tarballs.
+`shuck-shells` builds and publishes `bash`, `busybox`, `dash`, `mksh`, and `zsh` archives itself. Most come from upstream source tarballs; BusyBox is repackaged from Docker BusyBox rootfs archives.
 
 - workflow: `.github/workflows/build-shell-release.yml`
 - trigger: manual `workflow_dispatch`
@@ -77,8 +77,9 @@ The workflow performs a release preflight check before starting the matrix:
   - source tarball: `https://ftp.gnu.org/pub/gnu/bash/bash-<version>.tar.gz`
 - `busybox`
   - builder: `scripts/build_busybox_release.sh`
-  - source tarball: `https://busybox.net/downloads/busybox-<version>.tar.bz2`
-  - runtime packaging: wraps the BusyBox binary so `bin/busybox` runs the bundled `sh` applet
+  - discovery metadata: `https://raw.githubusercontent.com/docker-library/official-images/master/library/busybox`
+  - input rootfs: `https://raw.githubusercontent.com/docker-library/busybox/<commit>/<directory>/rootfs.tar.gz`
+  - runtime packaging: extracts `/bin/busybox`, then wraps it so `bin/busybox` runs the bundled `sh` applet
   - supported platforms: Linux only (`*-linux-gnu`, `*-linux-musl`)
 - `dash`
   - builder: `scripts/build_dash_release.sh`
