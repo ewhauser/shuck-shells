@@ -226,7 +226,7 @@ jobs:
             -e SOURCE_SHA256 \
             -v "$PWD:/workspace" \
             -w /workspace \
-            alpine:3.22 \
+            alpine:3.22@sha256:310c62b5e7ca5b08167e4384c68db0fd2905dd9c7493756d356e893909057601 \
             sh -lc '
               apk add --no-cache autoconf automake bash build-base curl ed ncurses-dev python3 tar xz
               chmod +x scripts/build_shell_release.sh
