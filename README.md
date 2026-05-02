@@ -5,7 +5,7 @@
 It owns:
 
 - release assets for shell archives
-- a generated `index.json` at the repo root
+- generated registry JSON documents under `registry/`
 - automation to refresh that index from releases
 - GitHub Pages publication for the generated JSON
 
@@ -38,23 +38,53 @@ Supported platforms:
 
 ## Published format
 
-The generated `index.json` matches the schema currently consumed by `shuck-run`:
+The registry uses a Terraform-style hierarchy:
+
+- root discovery document: `registry/index.json`
+- per-shell versions document: `registry/shells/<shell>/index.json`
+- per-version manifest: `registry/shells/<shell>/<version>.json`
+
+Root discovery document:
 
 ```json
 {
-  "version": 1,
+  "version": 2,
+  "kind": "shuck.shells.index",
   "shells": {
     "bash": {
-      "versions": {
-        "5.2.21": {
-          "platforms": {
-            "x86_64-linux": {
-              "url": "https://...",
-              "sha256": "..."
-            }
-          }
-        }
-      }
+      "versions_url": "shells/bash/index.json"
+    }
+  }
+}
+```
+
+Per-shell versions document:
+
+```json
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "bash",
+  "versions": {
+    "5.2.21": {
+      "manifest_url": "5.2.21.json"
+    }
+  }
+}
+```
+
+Per-version manifest:
+
+```json
+{
+  "version": 2,
+  "kind": "shuck.shells.release",
+  "shell": "bash",
+  "release": "5.2.21",
+  "platforms": {
+    "x86_64-linux": {
+      "url": "https://...",
+      "sha256": "..."
     }
   }
 }
@@ -65,23 +95,23 @@ The generated `index.json` matches the schema currently consumed by `shuck-run`:
 Validate the checked-in index and the generator logic:
 
 ```bash
-python3 scripts/validate_index.py index.json
+python3 scripts/validate_index.py registry
 python3 -m unittest discover -s tests
 ```
 
 Rebuild the checked-in index from live releases in the current repository:
 
 ```bash
-python3 scripts/build_index.py --output index.json
+python3 scripts/build_index.py --output-dir registry
 ```
 
 That mode uses `GITHUB_REPOSITORY` by default, or `--repo owner/name` to override it.
 
 ## Automation
 
-- `refresh-index.yml` regenerates `index.json` nightly and opens or updates a PR if it changes.
+- `refresh-index.yml` regenerates the checked-in registry tree nightly and opens or updates a PR if it changes.
 - `validate.yml` validates the JSON schema, canonical ordering, and script tests on PRs and `main`.
-- `publish-pages.yml` publishes the merged `index.json` to GitHub Pages.
+- `publish-pages.yml` publishes the merged `registry/` tree to GitHub Pages.
 
 The published endpoint for v1 is:
 

@@ -36,8 +36,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 scripts/build_index.py --output index.json
-          python3 scripts/validate_index.py index.json
+          python3 scripts/build_index.py --output-dir registry
+          python3 scripts/validate_index.py registry
 
       - name: Create or update refresh PR
         uses: peter-evans/create-pull-request@v7
@@ -48,7 +48,7 @@ jobs:
           delete-branch: false
           title: "chore(index): refresh shell archive index"
           body: |
-            Automated nightly refresh of `index.json` from GitHub release assets.
+            Automated nightly refresh of the published shell registry from GitHub release assets.
           labels: |
             automation
             index

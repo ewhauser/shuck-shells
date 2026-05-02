@@ -3,23 +3,22 @@ from __future__ import annotations
 
 import argparse
 
-from index_lib import load_ordered_json, validate_index_shape
+from index_lib import validate_registry_site
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate shuck shell archive index JSON.")
-    parser.add_argument("index_path", help="Path to index.json")
+    parser = argparse.ArgumentParser(description="Validate the generated shuck shell registry.")
+    parser.add_argument("site_root", help="Path to the generated registry root directory")
     return parser.parse_args()
 
 
-def validate_index_file(path: str) -> None:
-    index = load_ordered_json(path)
-    validate_index_shape(index)
+def validate_registry(path: str) -> None:
+    validate_registry_site(path)
 
 
 def main() -> None:
     args = parse_args()
-    validate_index_file(args.index_path)
+    validate_registry(args.site_root)
 
 
 if __name__ == "__main__":

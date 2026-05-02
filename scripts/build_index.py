@@ -9,7 +9,14 @@ import os
 from pathlib import Path
 import urllib.request
 
-from index_lib import IndexError, canonicalize_index, dump_json, parse_asset_filename, parse_release_tag
+from index_lib import (
+    IndexError,
+    build_registry_documents,
+    canonicalize_inventory,
+    parse_asset_filename,
+    parse_release_tag,
+    write_registry_documents,
+)
 
 
 def github_headers() -> dict[str, str]:
@@ -50,7 +57,7 @@ def fetch_asset_bytes(url: str) -> bytes:
         return response.read()
 
 
-def build_index(releases: list[dict], asset_fetcher=fetch_asset_bytes) -> dict:
+def build_registry(releases: list[dict], asset_fetcher=fetch_asset_bytes) -> dict:
     shells: dict[str, dict[str, dict[str, dict[str, str]]]] = defaultdict(
         lambda: defaultdict(dict)
     )
@@ -92,21 +99,14 @@ def build_index(releases: list[dict], asset_fetcher=fetch_asset_bytes) -> dict:
             sha256 = hashlib.sha256(asset_fetcher(asset_url)).hexdigest()
             shells[shell][version][platform] = {"url": asset_url, "sha256": sha256}
 
-    raw_index = {
-        "version": 1,
-        "shells": {
-            shell: {
-                "versions": {
-                    version: {"platforms": platforms}
-                    for version, platforms in versions.items()
-                    if platforms
-                }
-            }
-            for shell, versions in shells.items()
-            if versions
-        },
+    inventory = {
+        shell: {
+            version: platforms for version, platforms in versions.items() if platforms
+        }
+        for shell, versions in shells.items()
+        if versions
     }
-    return canonicalize_index(raw_index)
+    return build_registry_documents(canonicalize_inventory(inventory))
 
 
 def parse_args() -> argparse.Namespace:
@@ -121,10 +121,11 @@ def parse_args() -> argparse.Namespace:
         help="Read releases from a local JSON file instead of the GitHub API",
     )
     parser.add_argument(
-        "--output",
-        default="index.json",
-        help="Path to write the generated index JSON",
+        "--output-dir",
+        default="registry",
+        help="Directory to write the generated registry site into",
     )
+    parser.add_argument("--output", dest="output_dir", help=argparse.SUPPRESS)
     return parser.parse_args()
 
 
@@ -140,10 +141,10 @@ def main() -> None:
     if not isinstance(releases, list):
         raise SystemExit("release payload must be a JSON array")
 
-    index = build_index(releases)
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    dump_json(str(output_path), index)
+    documents = build_registry(releases)
+    output_dir = Path(args.output_dir)
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    write_registry_documents(output_dir, documents)
 
 
 if __name__ == "__main__":

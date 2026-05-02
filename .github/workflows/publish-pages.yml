@@ -27,14 +27,9 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
-      - name: Prepare Pages artifact
-        run: |
-          mkdir -p site
-          cp index.json site/index.json
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: registry
 
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -27,15 +27,15 @@ jobs:
         run: python3 -m unittest discover -s tests
 
       - name: Validate checked-in index
-        run: python3 scripts/validate_index.py index.json
+        run: python3 scripts/validate_index.py registry
 
       - name: Rebuild and verify checked-in index
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp index.json index.json.expected
-          python3 scripts/build_index.py --output index.json.generated
-          diff -u index.json.expected index.json.generated
+          cp -R registry registry.expected
+          python3 scripts/build_index.py --output-dir registry.generated
+          diff -ru registry.expected registry.generated
 
   merge-generated-pr:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'bot/refresh-index'
