@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "zsh",
+  "versions": {
+    "5.9": {
+      "manifest_url": "5.9.json"
+    }
+  }
+}

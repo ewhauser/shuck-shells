@@ -16,6 +16,9 @@
     },
     "mksh": {
       "versions_url": "shells/mksh/index.json"
+    },
+    "zsh": {
+      "versions_url": "shells/zsh/index.json"
     }
   }
 }
