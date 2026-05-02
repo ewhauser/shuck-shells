@@ -27,7 +27,7 @@ curl -fsSL "$source_url" -o "$source_archive"
 tar -xJf "$source_archive" -C "$work_root"
 
 pushd "$source_dir" >/dev/null
-"$source_dir/configure" --prefix=/usr/local
+"$source_dir/configure" --prefix=/usr/local --with-tcsetpgrp
 if command -v getconf >/dev/null 2>&1; then
   jobs="$(getconf _NPROCESSORS_ONLN)"
 elif command -v sysctl >/dev/null 2>&1; then
