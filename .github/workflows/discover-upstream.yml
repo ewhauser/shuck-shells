@@ -1,0 +1,71 @@
+name: Discover Upstream Releases
+
+on:
+  schedule:
+    - cron: "43 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Discover latest upstream versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/discover_upstream_versions.py --pretty > pending-builds.json
+
+      - name: Print discovery result
+        run: cat pending-builds.json
+
+      - name: Dispatch missing builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          with open("pending-builds.json", "r", encoding="utf-8") as handle:
+              payload = json.load(handle)
+
+          pending = payload["pending_builds"]
+          if not pending:
+              print("No upstream shell releases require builds.")
+              sys.exit(0)
+
+          for item in pending:
+              shell = item["shell"]
+              version = item["version"]
+              print(f"Dispatching build for {shell} {version}")
+              subprocess.run(
+                  [
+                      "gh",
+                      "workflow",
+                      "run",
+                      "build-shell-release.yml",
+                      "--repo",
+                      os.environ["REPO"],
+                      "-f",
+                      f"shell={shell}",
+                      "-f",
+                      f"version={version}",
+                  ],
+                  check=True,
+              )
+          PY

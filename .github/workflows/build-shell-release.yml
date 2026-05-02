@@ -1,20 +1,24 @@
-name: Build Bash Release
+name: Build Shell Release
 
 on:
   workflow_dispatch:
     inputs:
+      shell:
+        description: Shell name to build
+        required: true
+        type: string
       version:
-        description: GNU Bash release version to build
+        description: Upstream release version to build
         required: true
         type: string
 
-run-name: Build bash ${{ inputs.version }}
+run-name: Build ${{ inputs.shell }} ${{ inputs.version }}
 
 permissions:
   contents: write
 
 concurrency:
-  group: build-bash-${{ inputs.version }}
+  group: build-${{ inputs.shell }}-${{ inputs.version }}
   cancel-in-progress: false
 
 jobs:
@@ -36,13 +40,13 @@ jobs:
 
       - name: Build archive
         run: |
-          chmod +x scripts/build_bash_release.sh
-          scripts/build_bash_release.sh "${{ inputs.version }}" "${{ matrix.platform }}" dist
+          chmod +x scripts/build_shell_release.sh
+          scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bash-${{ inputs.version }}-${{ matrix.platform }}
-          path: dist/bash-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
+          name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
+          path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
           if-no-files-found: error
 
   build-linux-musl:
@@ -68,15 +72,15 @@ jobs:
             -w /workspace \
             alpine:3.22 \
             sh -lc '
-              apk add --no-cache bash build-base curl ncurses-dev tar
-              chmod +x scripts/build_bash_release.sh
-              scripts/build_bash_release.sh "${{ inputs.version }}" "${{ matrix.platform }}" dist
+              apk add --no-cache bash build-base curl ed ncurses-dev python3 tar xz
+              chmod +x scripts/build_shell_release.sh
+              scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
             '
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bash-${{ inputs.version }}-${{ matrix.platform }}
-          path: dist/bash-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
+          name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
+          path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
           if-no-files-found: error
 
   build-darwin:
@@ -97,13 +101,13 @@ jobs:
 
       - name: Build archive
         run: |
-          chmod +x scripts/build_bash_release.sh
-          scripts/build_bash_release.sh "${{ inputs.version }}" "${{ matrix.platform }}" dist
+          chmod +x scripts/build_shell_release.sh
+          scripts/build_shell_release.sh "${{ inputs.shell }}" "${{ inputs.version }}" "${{ matrix.platform }}" dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bash-${{ inputs.version }}-${{ matrix.platform }}
-          path: dist/bash-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
+          name: ${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}
+          path: dist/${{ inputs.shell }}-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
           if-no-files-found: error
 
   publish:
@@ -129,15 +133,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: bash-${{ inputs.version }}-*
+          pattern: ${{ inputs.shell }}-${{ inputs.version }}-*
           merge-multiple: true
 
       - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO: ${{ github.repository }}
-          RELEASE_TAG: bash-${{ inputs.version }}
-          RELEASE_TITLE: bash ${{ inputs.version }}
+          RELEASE_TAG: ${{ inputs.shell }}-${{ inputs.version }}
+          RELEASE_TITLE: ${{ inputs.shell }} ${{ inputs.version }}
         run: |
           ls -l dist
           if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
@@ -146,5 +150,5 @@ jobs:
             gh release create "$RELEASE_TAG" dist/*.tar.gz \
               --repo "$REPO" \
               --title "$RELEASE_TITLE" \
-              --notes "Automated Bash ${{ inputs.version }} builds for shuck-shells."
+              --notes "Automated ${{ inputs.shell }} ${{ inputs.version }} builds for shuck-shells."
           fi

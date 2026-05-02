@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 3 ]]; then
+  echo "usage: $0 <zsh-version> <platform> <output-dir>" >&2
+  exit 1
+fi
+
+version="$1"
+platform="$2"
+output_dir="$3"
+
+source_url="https://downloads.sourceforge.net/project/zsh/zsh/${version}/zsh-${version}.tar.xz"
+work_root="$(mktemp -d)"
+trap 'rm -rf "$work_root"' EXIT
+
+source_archive="$work_root/zsh-${version}.tar.xz"
+source_dir="$work_root/zsh-${version}"
+stage_dir="$work_root/stage"
+archive_root="$work_root/zsh-${version}-${platform}"
+archive_name="zsh-${version}-${platform}.tar.gz"
+
+mkdir -p "$output_dir"
+
+echo "Downloading ${source_url}"
+curl -fsSL "$source_url" -o "$source_archive"
+tar -xJf "$source_archive" -C "$work_root"
+
+pushd "$source_dir" >/dev/null
+"$source_dir/configure" --prefix=/usr/local
+if command -v getconf >/dev/null 2>&1; then
+  jobs="$(getconf _NPROCESSORS_ONLN)"
+elif command -v sysctl >/dev/null 2>&1; then
+  jobs="$(sysctl -n hw.ncpu)"
+else
+  jobs=2
+fi
+make -j"$jobs"
+make install DESTDIR="$stage_dir"
+popd >/dev/null
+
+mkdir -p "$archive_root"
+cp -R "$stage_dir/usr/local/." "$archive_root/"
+rm -rf "$archive_root/share/man" "$archive_root/share/info"
+
+license_source="$source_dir/LICENCE"
+if [[ ! -f "$license_source" ]]; then
+  license_source="$source_dir/LICENSE"
+fi
+cp "$license_source" "$archive_root/LICENSE"
+
+mv "$archive_root/bin/zsh" "$archive_root/bin/zsh.real"
+cat >"$archive_root/bin/zsh" <<'EOF'
+#!/bin/sh
+set -eu
+
+self_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+root_dir=$(CDPATH= cd -- "$self_dir/.." && pwd)
+
+module_path_value=${MODULE_PATH:-}
+for candidate in "$root_dir"/lib/zsh/*; do
+  if [ -d "$candidate" ]; then
+    if [ -n "$module_path_value" ]; then
+      module_path_value="$candidate:$module_path_value"
+    else
+      module_path_value="$candidate"
+    fi
+    break
+  fi
+done
+if [ -n "$module_path_value" ]; then
+  export MODULE_PATH="$module_path_value"
+fi
+
+fpath_value=${FPATH:-}
+for candidate in "$root_dir"/share/zsh/*/functions; do
+  if [ -d "$candidate" ]; then
+    if [ -n "$fpath_value" ]; then
+      fpath_value="$candidate:$fpath_value"
+    else
+      fpath_value="$candidate"
+    fi
+    break
+  fi
+done
+if [ -d "$root_dir/share/zsh/site-functions" ]; then
+  if [ -n "$fpath_value" ]; then
+    fpath_value="$root_dir/share/zsh/site-functions:$fpath_value"
+  else
+    fpath_value="$root_dir/share/zsh/site-functions"
+  fi
+fi
+if [ -n "$fpath_value" ]; then
+  export FPATH="$fpath_value"
+fi
+
+exec "$self_dir/zsh.real" "$@"
+EOF
+chmod 755 "$archive_root/bin/zsh" "$archive_root/bin/zsh.real"
+
+actual_version="$("$archive_root/bin/zsh" --version | head -n 1)"
+case "$actual_version" in
+  "zsh ${version}"* | *"zsh ${version}"*) ;;
+  *)
+    echo "built zsh reported unexpected version: ${actual_version}" >&2
+    exit 1
+    ;;
+esac
+
+"$archive_root/bin/zsh" -fc 'zmodload zsh/zutil'
+"$archive_root/bin/zsh" -fc 'autoload -Uz add-zsh-hook; add-zsh-hook -L >/dev/null'
+
+tar -czf "${output_dir}/${archive_name}" -C "$work_root" "$(basename "$archive_root")"
+tar -tzf "${output_dir}/${archive_name}" >/dev/null
+
+echo "Created ${output_dir}/${archive_name}"

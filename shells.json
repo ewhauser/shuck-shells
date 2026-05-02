@@ -1,0 +1,56 @@
+{
+  "bash": {
+    "display_name": "Bash",
+    "release_source": {
+      "kind": "build",
+      "builder": "scripts/build_bash_release.sh"
+    },
+    "upstream": {
+      "discovery_urls": [
+        "https://ftp.gnu.org/pub/gnu/bash/"
+      ],
+      "version_pattern": "bash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
+    }
+  },
+  "dash": {
+    "display_name": "dash",
+    "release_source": {
+      "kind": "build",
+      "builder": "scripts/build_dash_release.sh"
+    },
+    "upstream": {
+      "discovery_urls": [
+        "https://gondor.apana.org.au/~herbert/dash/",
+        "https://gondor.apana.org.au/~herbert/dash/files/"
+      ],
+      "version_pattern": "dash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
+    }
+  },
+  "mksh": {
+    "display_name": "mksh",
+    "release_source": {
+      "kind": "build",
+      "builder": "scripts/build_mksh_release.sh"
+    },
+    "upstream": {
+      "discovery_urls": [
+        "https://mbsd.evolvis.org/MirOS/dist/mir/mksh/",
+        "https://pub.allbsd.org/MirOS/dist/mir/mksh/"
+      ],
+      "version_pattern": "mksh-(R[0-9][0-9A-Za-z.]*)\\.tgz"
+    }
+  },
+  "zsh": {
+    "display_name": "Zsh",
+    "release_source": {
+      "kind": "build",
+      "builder": "scripts/build_zsh_release.sh"
+    },
+    "upstream": {
+      "discovery_urls": [
+        "https://zsh.sourceforge.io/Arc/source.html"
+      ],
+      "version_pattern": "zsh-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.xz"
+    }
+  }
+}

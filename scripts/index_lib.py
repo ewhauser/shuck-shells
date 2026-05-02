@@ -7,11 +7,13 @@ import re
 import shutil
 from typing import Iterable
 
+from shell_catalog import load_shell_catalog
+
 SCHEMA_VERSION = 2
 ROOT_KIND = "shuck.shells.index"
 SHELL_KIND = "shuck.shells.versions"
 RELEASE_KIND = "shuck.shells.release"
-SUPPORTED_SHELLS = ("bash", "zsh", "dash", "mksh")
+SUPPORTED_SHELLS = tuple(load_shell_catalog().keys())
 SUPPORTED_PLATFORMS = (
     "x86_64-linux-gnu",
     "aarch64-linux-gnu",
@@ -21,7 +23,6 @@ SUPPORTED_PLATFORMS = (
     "aarch64-darwin",
 )
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
-TAG_PATTERN = re.compile(r"^(bash|zsh|dash|mksh)-(.+)$")
 
 
 class IndexError(ValueError):
@@ -29,15 +30,21 @@ class IndexError(ValueError):
 
 
 def parse_release_tag(tag: str) -> tuple[str, str]:
-    match = TAG_PATTERN.fullmatch(tag)
-    if not match:
+    for shell in SUPPORTED_SHELLS:
+        prefix = f"{shell}-"
+        if not tag.startswith(prefix):
+            continue
+        version = tag[len(prefix) :]
+        if not version:
+            raise IndexError(f"missing version in release tag `{tag}`")
+        return shell, version
+    if "-" not in tag:
         raise IndexError(
             f"invalid release tag `{tag}`; expected <shell>-<version> for a supported shell"
         )
-    shell, version = match.groups()
-    if not version:
-        raise IndexError(f"missing version in release tag `{tag}`")
-    return shell, version
+    raise IndexError(
+        f"invalid release tag `{tag}`; expected <shell>-<version> for a supported shell"
+    )
 
 
 def parse_asset_filename(filename: str) -> tuple[str, str, str] | None:
