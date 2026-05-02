@@ -37,7 +37,7 @@ jobs:
           python3 scripts/build_index.py --output index.json.generated
           diff -u index.json.expected index.json.generated
 
-  auto-merge-generated-pr:
+  merge-generated-pr:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'bot/refresh-index'
     needs: validate
     runs-on: ubuntu-latest
@@ -46,14 +46,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Approve generated PR
+      - name: Enable auto-merge for generated PR
         env:
-          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_APPROVER_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr review "$PR_URL" --approve --body "Auto-approving generated index refresh."
-
-      - name: Enable auto-merge
-        env:
-          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_APPROVER_TOKEN }}
+          GH_TOKEN: ${{ secrets.SHUCK_SHELLS_BOT_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"

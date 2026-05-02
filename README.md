@@ -87,11 +87,10 @@ The published endpoint for v1 is:
 
 - `https://<owner>.github.io/shuck-shells/index.json`
 
-## Required secrets
+## Required secret
 
-The automation uses separate GitHub actors for PR creation and approval:
+The automation uses one GitHub identity stored as:
 
-- `SHUCK_SHELLS_PR_TOKEN`
-- `SHUCK_SHELLS_APPROVER_TOKEN`
+- `SHUCK_SHELLS_BOT_TOKEN`
 
-That split is intentional. GitHub does not allow a PR author to satisfy required approval on their own PR, so the approver token must belong to a different account than the PR author.
+This one-identity setup intentionally does not require PR approvals on `main`. The nightly workflow opens or updates the refresh PR, and the validation workflow enables auto-merge after the required checks pass.
