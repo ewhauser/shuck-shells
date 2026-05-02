@@ -4,6 +4,9 @@
   "shells": {
     "bash": {
       "versions_url": "shells/bash/index.json"
+    },
+    "mksh": {
+      "versions_url": "shells/mksh/index.json"
     }
   }
 }

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "kind": "shuck.shells.versions",
+  "shell": "mksh",
+  "versions": {
+    "R59c": {
+      "manifest_url": "R59c.json"
+    }
+  }
+}
