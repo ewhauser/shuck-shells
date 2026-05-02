@@ -19,6 +19,8 @@ from shell_catalog import (  # noqa: E402
     release_source_kind,
     shell_display_name,
     shell_supported_platforms,
+    upstream_source_sha256,
+    upstream_source_sha256s,
 )
 
 
@@ -110,6 +112,27 @@ class ShellCatalogTest(unittest.TestCase):
                 "x86_64-linux-gnu",
             ],
         )
+
+    def test_upstream_source_sha256(self) -> None:
+        self.assertEqual(
+            upstream_source_sha256("bash", "5.3"),
+            "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+        )
+        self.assertEqual(
+            upstream_source_sha256("busybox", "1.37.0", "x86_64-linux-musl"),
+            "5bfa213ad2917fd7ef0d56c49b841de3a4788e60b3554ad86d616100e095c1f8",
+        )
+        self.assertEqual(
+            upstream_source_sha256s("busybox", "1.37.0"),
+            {
+                "aarch64-linux-musl": "aa2055a5d652bae8c30a96647ff450304c075355e481e5446d6f91f35af45ec7",
+                "x86_64-linux-musl": "5bfa213ad2917fd7ef0d56c49b841de3a4788e60b3554ad86d616100e095c1f8",
+            },
+        )
+        with self.assertRaisesRegex(ValueError, "platform-specific"):
+            upstream_source_sha256("busybox", "1.37.0")
+        with self.assertRaisesRegex(ValueError, "missing upstream source_sha256"):
+            upstream_source_sha256("zsh", "5.10")
 
     def test_github_release_metadata(self) -> None:
         self.assertEqual(github_release_repo("bashkit"), "everruns/bashkit")

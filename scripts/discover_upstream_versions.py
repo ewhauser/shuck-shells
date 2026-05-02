@@ -10,7 +10,7 @@ import urllib.request
 
 from build_index import github_headers
 from index_lib import IndexError, version_sort_key
-from shell_catalog import load_shell_catalog, release_source_kind
+from shell_catalog import CatalogError, load_shell_catalog, release_source_kind, upstream_source_sha256s
 
 
 def fetch_text(url: str) -> str:
@@ -98,17 +98,28 @@ def discover_pending_builds(
                 version = latest_version(text, version_pattern)
                 release_tag = f"{shell}-{version}"
                 release_exists = release_tag in tags
-                discovered.append(
-                    {
-                        "shell": shell,
-                        "version": version,
-                        "release_tag": release_tag,
-                        "discovery_url": discovery_url,
-                        "release_exists": release_exists,
-                    }
-                )
-                if not release_exists:
-                    pending_builds.append({"shell": shell, "version": version})
+                entry = {
+                    "shell": shell,
+                    "version": version,
+                    "release_tag": release_tag,
+                    "discovery_url": discovery_url,
+                    "release_exists": release_exists,
+                }
+                try:
+                    source_sha256s = upstream_source_sha256s(shell, version)
+                    entry["source_sha256s"] = source_sha256s
+                    if not release_exists:
+                        pending_builds.append(
+                            {
+                                "shell": shell,
+                                "version": version,
+                                "source_sha256s": source_sha256s,
+                            }
+                        )
+                except CatalogError as exc:
+                    entry["source_sha256_missing"] = True
+                    entry["error"] = str(exc)
+                discovered.append(entry)
                 break
             except Exception as exc:
                 last_error = str(exc)

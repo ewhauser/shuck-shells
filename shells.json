@@ -17,7 +17,11 @@
       "discovery_urls": [
         "https://ftp.gnu.org/pub/gnu/bash/"
       ],
-      "version_pattern": "bash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz"
+      "version_pattern": "bash-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.gz",
+      "source_sha256s": {
+        "5.2.21": "c8e31bdc59b69aaffc5b36509905ba3e5cbb12747091d27b4b977f078560d5b8",
+        "5.3": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba"
+      }
     }
   },
   "bashkit": {
@@ -60,7 +64,13 @@
       "discovery_urls": [
         "https://raw.githubusercontent.com/docker-library/official-images/master/library/busybox"
       ],
-      "version_pattern": "Tags:\\s*([0-9]+(?:\\.[0-9]+)*)-glibc(?:,|\\s)"
+      "version_pattern": "Tags:\\s*([0-9]+(?:\\.[0-9]+)*)-glibc(?:,|\\s)",
+      "source_sha256s": {
+        "1.37.0": {
+          "aarch64-linux-musl": "aa2055a5d652bae8c30a96647ff450304c075355e481e5446d6f91f35af45ec7",
+          "x86_64-linux-musl": "5bfa213ad2917fd7ef0d56c49b841de3a4788e60b3554ad86d616100e095c1f8"
+        }
+      }
     }
   },
   "dash": {
@@ -82,7 +92,10 @@
         "https://kernel.googlesource.com/pub/scm/utils/dash/dash/%2Blog",
         "https://kernel.googlesource.com/pub/scm/utils/dash/dash/"
       ],
-      "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)"
+      "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)",
+      "source_sha256s": {
+        "0.5.13.3": "83a76923f8d03c056bad706eff5a3d99b6bf2afd7e1061e066f2d7b07e2014db"
+      }
     }
   },
   "gbash": {
@@ -130,7 +143,10 @@
         "https://mbsd.evolvis.org/MirOS/dist/mir/mksh/",
         "https://pub.allbsd.org/MirOS/dist/mir/mksh/"
       ],
-      "version_pattern": "mksh-(R[0-9][0-9A-Za-z.]*)\\.tgz"
+      "version_pattern": "mksh-(R[0-9][0-9A-Za-z.]*)\\.tgz",
+      "source_sha256s": {
+        "R59c": "77ae1665a337f1c48c61d6b961db3e52119b38e58884d1c89684af31f87bc506"
+      }
     }
   },
   "zsh": {
@@ -151,7 +167,10 @@
       "discovery_urls": [
         "https://zsh.sourceforge.io/Arc/source.html"
       ],
-      "version_pattern": "zsh-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.xz"
+      "version_pattern": "zsh-([0-9]+(?:\\.[0-9]+)*)\\.tar\\.xz",
+      "source_sha256s": {
+        "5.9": "9b8d1ecedd5b5e81fbf1918e876752a7dd948e05c1a0dba10ab863842d45acd5"
+      }
     }
   }
 }

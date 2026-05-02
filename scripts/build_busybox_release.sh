@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 3 ]]; then
-  echo "usage: $0 <busybox-version> <platform> <output-dir>" >&2
+if [[ $# -ne 4 ]]; then
+  echo "usage: $0 <busybox-version> <platform> <source-sha256> <output-dir>" >&2
   exit 1
 fi
 
 version="$1"
 platform="$2"
-output_dir="$3"
+source_sha256="$3"
+output_dir="$4"
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+repo_root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
 
 case "$platform" in
   x86_64-linux-musl|aarch64-linux-musl)
@@ -36,6 +38,7 @@ mkdir -p "$source_dir"
 
 echo "Downloading ${source_url}"
 curl -fsSL "$source_url" -o "$source_archive"
+"$repo_root/scripts/verify_source_sha256.sh" "$source_sha256" "$source_archive"
 tar -xzf "$source_archive" -C "$source_dir"
 
 mkdir -p "$archive_root/bin"

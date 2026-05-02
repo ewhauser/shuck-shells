@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 3 ]]; then
-  echo "usage: $0 <mksh-version> <platform> <output-dir>" >&2
+if [[ $# -ne 4 ]]; then
+  echo "usage: $0 <mksh-version> <platform> <source-sha256> <output-dir>" >&2
   exit 1
 fi
 
 version="$1"
 platform="$2"
-output_dir="$3"
+source_sha256="$3"
+output_dir="$4"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 archive_version="$version"
 case "$archive_version" in
@@ -30,6 +32,7 @@ mkdir -p "$output_dir" "$source_dir" "$build_dir" "$archive_root/bin"
 
 echo "Downloading ${source_url}"
 curl -fsSL "$source_url" -o "$source_archive"
+"$repo_root/scripts/verify_source_sha256.sh" "$source_sha256" "$source_archive"
 tar -xzf "$source_archive" -C "$source_dir" --strip-components=1
 
 pushd "$build_dir" >/dev/null
