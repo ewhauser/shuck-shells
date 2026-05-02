@@ -5,12 +5,19 @@ import argparse
 import json
 import os
 import re
+import subprocess
 from typing import Callable
 import urllib.request
 
 from build_index import github_headers
 from index_lib import IndexError, version_sort_key
-from shell_catalog import CatalogError, load_shell_catalog, release_source_kind, upstream_source_sha256s
+from shell_catalog import (
+    CatalogError,
+    load_shell_catalog,
+    release_source_kind,
+    upstream_discovery_git_tags_url,
+    upstream_source_sha256s,
+)
 
 
 def fetch_text(url: str) -> str:
@@ -23,6 +30,22 @@ def fetch_json(url: str) -> object:
     request = urllib.request.Request(url, headers=github_headers())
     with urllib.request.urlopen(request) as response:
         return json.load(response)
+
+
+def fetch_git_tags(repo_url: str) -> str:
+    result = subprocess.run(
+        [
+            "git",
+            "ls-remote",
+            "--tags",
+            repo_url,
+            "refs/tags/*",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout
 
 
 def iter_repo_releases(repo: str) -> list[dict]:
@@ -77,6 +100,7 @@ def existing_release_tags(releases: list[dict]) -> set[str]:
 def discover_pending_builds(
     repo: str,
     page_fetcher: Callable[[str], str] = fetch_text,
+    git_tag_fetcher: Callable[[str], str] = fetch_git_tags,
 ) -> dict[str, object]:
     catalog = load_shell_catalog()
     releases = iter_repo_releases(repo)
@@ -89,9 +113,41 @@ def discover_pending_builds(
         if release_source_kind(shell) != "build":
             continue
         upstream = metadata["upstream"]
+        git_tags_url = upstream_discovery_git_tags_url(shell)
         discovery_urls = [str(discovery_url) for discovery_url in upstream["discovery_urls"]]
         version_pattern = str(upstream["version_pattern"])
         last_error: str | None = None
+        if git_tags_url is not None:
+            try:
+                text = git_tag_fetcher(git_tags_url)
+                version = latest_version(text, version_pattern)
+                release_tag = f"{shell}-{version}"
+                release_exists = release_tag in tags
+                entry = {
+                    "shell": shell,
+                    "version": version,
+                    "release_tag": release_tag,
+                    "discovery_git_tags_url": git_tags_url,
+                    "release_exists": release_exists,
+                }
+                try:
+                    source_sha256s = upstream_source_sha256s(shell, version)
+                    entry["source_sha256s"] = source_sha256s
+                    if not release_exists:
+                        pending_builds.append(
+                            {
+                                "shell": shell,
+                                "version": version,
+                                "source_sha256s": source_sha256s,
+                            }
+                        )
+                except CatalogError as exc:
+                    entry["source_sha256_missing"] = True
+                    entry["error"] = str(exc)
+                discovered.append(entry)
+                continue
+            except Exception as exc:
+                last_error = str(exc)
         for discovery_url in discovery_urls:
             try:
                 text = page_fetcher(discovery_url)
@@ -124,13 +180,14 @@ def discover_pending_builds(
             except Exception as exc:
                 last_error = str(exc)
         else:
-            discovered.append(
-                {
-                    "shell": shell,
-                    "discovery_urls": discovery_urls,
-                    "error": last_error or "unknown discovery failure",
-                }
-            )
+            entry = {
+                "shell": shell,
+                "discovery_urls": discovery_urls,
+                "error": last_error or "unknown discovery failure",
+            }
+            if git_tags_url is not None:
+                entry["discovery_git_tags_url"] = git_tags_url
+            discovered.append(entry)
 
     return {"discovered": discovered, "pending_builds": pending_builds}
 

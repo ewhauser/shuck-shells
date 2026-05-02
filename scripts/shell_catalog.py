@@ -119,6 +119,7 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
                     f"shell catalog entry `{shell}` must define upstream discovery metadata"
                 )
             discovery_urls = upstream.get("discovery_urls")
+            discovery_git_tags_url = upstream.get("discovery_git_tags_url")
             version_pattern = upstream.get("version_pattern")
             source_sha256s = upstream.get("source_sha256s")
             if (
@@ -131,6 +132,13 @@ def load_shell_catalog() -> dict[str, dict[str, Any]]:
             ):
                 raise CatalogError(
                     f"shell catalog entry `{shell}` must define non-empty https upstream discovery_urls"
+                )
+            if discovery_git_tags_url is not None and (
+                not isinstance(discovery_git_tags_url, str)
+                or not discovery_git_tags_url.startswith("https://")
+            ):
+                raise CatalogError(
+                    f"shell catalog entry `{shell}` must define an https upstream discovery_git_tags_url when present"
                 )
             if not isinstance(version_pattern, str) or not version_pattern:
                 raise CatalogError(
@@ -261,6 +269,15 @@ def upstream_version_pattern(shell: str) -> str:
     metadata = shell_metadata(shell)
     upstream = metadata["upstream"]
     return str(upstream["version_pattern"])
+
+
+def upstream_discovery_git_tags_url(shell: str) -> str | None:
+    metadata = shell_metadata(shell)
+    upstream = metadata["upstream"]
+    value = upstream.get("discovery_git_tags_url")
+    if value is None:
+        return None
+    return str(value)
 
 
 def upstream_source_sha256s(shell: str, version: str) -> dict[str, str]:

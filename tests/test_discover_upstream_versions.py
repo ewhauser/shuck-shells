@@ -127,6 +127,78 @@ class DiscoverUpstreamVersionsTest(unittest.TestCase):
             ],
         )
 
+    def test_discover_pending_builds_prefers_git_tags_when_configured(self) -> None:
+        catalog = {
+            "dash": {
+                "display_name": "dash",
+                "release_source": {
+                    "kind": "build",
+                    "builder": "scripts/build_dash_release.sh",
+                    "supported_platforms": ["x86_64-linux-gnu"],
+                },
+                "upstream": {
+                    "discovery_git_tags_url": "https://example.invalid/dash.git",
+                    "discovery_urls": ["https://example.invalid/dash-log"],
+                    "version_pattern": r"v([0-9]+(?:\.[0-9]+)*)",
+                    "source_sha256s": {
+                        "0.5.13.3": "d" * 64,
+                    },
+                },
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            catalog_path = Path(tempdir) / "shells.json"
+            catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+            old_value = os.environ.get("SHUCK_SHELLS_CATALOG_PATH")
+            os.environ["SHUCK_SHELLS_CATALOG_PATH"] = str(catalog_path)
+            try:
+                with patch(
+                    "discover_upstream_versions.iter_repo_releases",
+                    return_value=[],
+                ):
+                    result = discover_pending_builds(
+                        "owner/repo",
+                        page_fetcher=lambda url: (_ for _ in ()).throw(
+                            AssertionError(f"page fetch should not be used: {url}")
+                        ),
+                        git_tag_fetcher=lambda url: "\n".join(
+                            [
+                                "1111111111111111111111111111111111111111\trefs/tags/v0.5.13.2",
+                                "2222222222222222222222222222222222222222\trefs/tags/v0.5.13.3",
+                            ]
+                        ),
+                    )
+            finally:
+                if old_value is None:
+                    os.environ.pop("SHUCK_SHELLS_CATALOG_PATH", None)
+                else:
+                    os.environ["SHUCK_SHELLS_CATALOG_PATH"] = old_value
+
+        self.assertEqual(
+            result["pending_builds"],
+            [
+                {
+                    "shell": "dash",
+                    "version": "0.5.13.3",
+                    "source_sha256s": {"x86_64-linux-gnu": "d" * 64},
+                }
+            ],
+        )
+        self.assertEqual(
+            result["discovered"],
+            [
+                {
+                    "shell": "dash",
+                    "version": "0.5.13.3",
+                    "release_tag": "dash-0.5.13.3",
+                    "discovery_git_tags_url": "https://example.invalid/dash.git",
+                    "release_exists": False,
+                    "source_sha256s": {"x86_64-linux-gnu": "d" * 64},
+                }
+            ],
+        )
+
     def test_discover_pending_builds_keeps_going_when_one_upstream_fails(self) -> None:
         catalog = {
             "bash": {

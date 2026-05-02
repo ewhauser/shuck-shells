@@ -19,6 +19,7 @@ from shell_catalog import (  # noqa: E402
     release_source_kind,
     shell_display_name,
     shell_supported_platforms,
+    upstream_discovery_git_tags_url,
     upstream_source_sha256,
     upstream_source_sha256s,
 )
@@ -133,6 +134,13 @@ class ShellCatalogTest(unittest.TestCase):
             upstream_source_sha256("busybox", "1.37.0")
         with self.assertRaisesRegex(ValueError, "missing upstream source_sha256"):
             upstream_source_sha256("zsh", "5.10")
+
+    def test_upstream_discovery_git_tags_url(self) -> None:
+        self.assertEqual(
+            upstream_discovery_git_tags_url("dash"),
+            "https://kernel.googlesource.com/pub/scm/utils/dash/dash",
+        )
+        self.assertIsNone(upstream_discovery_git_tags_url("bash"))
 
     def test_github_release_metadata(self) -> None:
         self.assertEqual(github_release_repo("bashkit"), "everruns/bashkit")

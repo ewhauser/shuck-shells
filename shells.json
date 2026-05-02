@@ -72,11 +72,11 @@
         }
       }
     }
-  },
-  "dash": {
-    "display_name": "dash",
-    "release_source": {
-      "kind": "build",
+    },
+    "dash": {
+      "display_name": "dash",
+      "release_source": {
+        "kind": "build",
       "builder": "scripts/build_dash_release.sh",
       "supported_platforms": [
         "aarch64-darwin",
@@ -86,13 +86,14 @@
         "x86_64-linux-gnu",
         "x86_64-linux-musl"
       ]
-    },
-    "upstream": {
-      "discovery_urls": [
-        "https://kernel.googlesource.com/pub/scm/utils/dash/dash/%2Blog",
-        "https://kernel.googlesource.com/pub/scm/utils/dash/dash/"
-      ],
-      "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)",
+      },
+      "upstream": {
+        "discovery_git_tags_url": "https://kernel.googlesource.com/pub/scm/utils/dash/dash",
+        "discovery_urls": [
+          "https://kernel.googlesource.com/pub/scm/utils/dash/dash/%2Blog",
+          "https://kernel.googlesource.com/pub/scm/utils/dash/dash/"
+        ],
+        "version_pattern": "v([0-9]+(?:\\.[0-9]+)*)",
       "source_sha256s": {
         "0.5.13.3": "83a76923f8d03c056bad706eff5a3d99b6bf2afd7e1061e066f2d7b07e2014db"
       }
