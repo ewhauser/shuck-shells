@@ -3,6 +3,9 @@
   "kind": "shuck.shells.versions",
   "shell": "gbash",
   "versions": {
+    "0.0.38": {
+      "manifest_url": "0.0.38.json"
+    },
     "0.0.37": {
       "manifest_url": "0.0.37.json"
     },
