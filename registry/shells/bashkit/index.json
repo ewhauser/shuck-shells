@@ -3,6 +3,9 @@
   "kind": "shuck.shells.versions",
   "shell": "bashkit",
   "versions": {
+    "0.6.0": {
+      "manifest_url": "0.6.0.json"
+    },
     "0.5.0": {
       "manifest_url": "0.5.0.json"
     },
