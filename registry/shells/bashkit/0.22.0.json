@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "kind": "shuck.shells.release",
+  "shell": "bashkit",
+  "release": "0.22.0",
+  "platforms": {
+    "aarch64-darwin": {
+      "url": "https://github.com/everruns/bashkit/releases/download/v0.22.0/bashkit-aarch64-apple-darwin.tar.gz",
+      "sha256": "7b9ba4e2c1407c5240e8063e6a4acec4df4fc609ffb68bbac68aa17b120efd9a",
+      "asset_id": 793564979,
+      "asset_digest": "sha256:7b9ba4e2c1407c5240e8063e6a4acec4df4fc609ffb68bbac68aa17b120efd9a"
+    },
+    "x86_64-darwin": {
+      "url": "https://github.com/everruns/bashkit/releases/download/v0.22.0/bashkit-x86_64-apple-darwin.tar.gz",
+      "sha256": "df63d6057b34df8ce5921e1376d49c5fa83a019a69f7c8af2523aeadcab1105c",
+      "asset_id": 793562267,
+      "asset_digest": "sha256:df63d6057b34df8ce5921e1376d49c5fa83a019a69f7c8af2523aeadcab1105c"
+    },
+    "x86_64-linux-gnu": {
+      "url": "https://github.com/everruns/bashkit/releases/download/v0.22.0/bashkit-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "50db0826f0d9c4fd77d2c52ad48c0851dcc22c60f3ef50cbe578551128930924",
+      "asset_id": 793557345,
+      "asset_digest": "sha256:50db0826f0d9c4fd77d2c52ad48c0851dcc22c60f3ef50cbe578551128930924"
+    }
+  }
+}
